@@ -27,17 +27,6 @@ Apply **Bayesian Online Change-Point Detection (BOCPD)** to EEG data to detect w
 - **Model:** Scalar BOCPD with **Gaussian conjugate** (Normal–Inverse-Gamma) for analytic predictive likelihood.
 - **Output:** Posterior over run length (time since last changepoint); hazard function encodes expected regime stability.
 
-### Project Roadmap
-
-| Phase | Goal | Status |
-|-------|------|--------|
-| 1 | Load and sanity-check THINGS-EEG data | ✓ Done |
-| 2 | EDA (anatomy, trial repetition, spectral bandpower, temporal dynamics, QC) | ✓ Done |
-| 3 | Extract windowed EEG features for BOCPD | Pending |
-| 4 | Implement scalar BOCPD (Gaussian conjugate) | Pending |
-| 5 | Within-epoch CPD | Pending |
-| 6 | Across-repetition CPD | Pending |
-| 7 | Evaluate on synthetic changepoints | Pending |
 
 ### References
 
