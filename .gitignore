@@ -3,3 +3,27 @@ results.md
 
 # Data too large to push
 data/
+
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Vercel
+.vercel
+
+# Environment & misc
+.env
+.env.local
+.env.*.local
+!.env.example
+.DS_Store
+*.log
+coverage/

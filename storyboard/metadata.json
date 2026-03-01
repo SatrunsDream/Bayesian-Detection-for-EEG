@@ -1,0 +1,5 @@
+{
+  "name": "Neural Shifts: EEG Storyboard",
+  "description": "An immersive, interactive storyboard exploring Bayesian Online Change-Point Detection in EEG research.",
+  "requestFramePermissions": []
+}
