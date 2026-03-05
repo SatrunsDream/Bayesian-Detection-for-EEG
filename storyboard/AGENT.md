@@ -110,7 +110,8 @@ storyboard/
 - BOCPD Recursion block: formula, explanation, BOCPDLogic (left) | RunLengthVis, Hyperparameters (right).
 
 ### results
-- **Across-Repetition:** 2-col. Left: text + DataTable. Right: bar chart + Interpretation box.
+- **Across-Repetition (Single Channel):** 2-col. Left: text + DataTable. Right: bar chart + Interpretation.
+- **Single vs Channel-Aggregated:** Comparison stats (3 cards: mean +65%, conditions 3×, max 0.610); two bar charts side-by-side (single=amber, aggregate=emerald); key finding callout; DataTable (aggregate).
 - **Within-Epoch Variance:** 2-col. Left: text (windowed mean negative result, windowed variance). Right: Within-Epoch Variance Latency DataTable.
 - **Synthetic Validation:** Full-width at bottom. Horizontal layout: chart (2/3 width, height 380px) | summary text + key bullets (1/3). Synthetic Evaluation DataTable below.
 
@@ -145,6 +146,7 @@ storyboard/
 |--------|---------|
 | `QC_SUMMARY` | DataTable (dataset) |
 | `ACROSS_REPS_SUMMARY` | DataTable, InteractiveChart (results) |
+| `ACROSS_REPS_AGGREGATE_SUMMARY` | DataTable, InteractiveChart (results, channel-aggregated comparison) |
 | `WITHIN_EPOCH_VARIANCE` | DataTable (results, within-epoch) |
 | `SYNTHETIC_EVAL` | DataTable, InteractiveChart (results) |
 | `TEMPORAL_VARIANCE_BY_WINDOW` | InteractiveChart (intro) |

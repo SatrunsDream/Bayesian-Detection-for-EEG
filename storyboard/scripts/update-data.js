@@ -12,6 +12,7 @@ const mappings = {
   'eda__value_stats_all_participants': 'VALUE_STATS',
   'quality__qc_summary': 'QC_SUMMARY',
   'bocpd__across_reps_summary': 'ACROSS_REPS_SUMMARY',
+  'bocpd__across_reps_aggregate_channels_summary': 'ACROSS_REPS_AGGREGATE_SUMMARY',
   'bocpd__within_epoch_variance_peak_latency': 'WITHIN_EPOCH_VARIANCE',
   'bocpd__synthetic_evaluation': 'SYNTHETIC_EVAL',
   'trial_rep__variance_summary': 'TRIAL_REP_VARIANCE',

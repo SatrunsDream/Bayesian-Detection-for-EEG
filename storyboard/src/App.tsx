@@ -140,45 +140,41 @@ export default function App() {
           <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">02 / Introduction</span>
           <div className="h-px flex-1 bg-zinc-800" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          <div>
-            <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">The Nonstationarity Problem</h2>
-            <p className="text-zinc-400 leading-relaxed mb-6">
-              EEG recordings are nonstationary at multiple timescales. Within a single trial, the neural response 
-              evolves from a pre-stimulus baseline through early sensory processing (P1/N1 components at ~100–170 ms) into later cognitive stages (P300, N400, etc.).
-              Across repeated presentations of the same stimulus, habituation, adaptation, attentional fluctuations, and electrode drift can all produce slow changes in the response distribution.
-            </p>
-            <p className="text-zinc-400 leading-relaxed mb-6">
-              These nonstationarities are not merely nuisances. They carry information about the underlying neural computation: a shift in the variance regime within an epoch may mark the boundary between feedforward sensory processing and recurrent top-down modulation.
-            </p>
-            <div className="space-y-4">
-              {[
-                { icon: Activity, title: "Sensory Processing", desc: "P1/N1 components at ~100–170 ms" },
-                { icon: Zap, title: "Cognitive Stages", desc: "P300, N400, and beyond" },
-                { icon: Target, title: "Adaptation", desc: "Habituation and attentional fluctuations" }
-              ].map((item, i) => (
-                <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-zinc-900/50 transition-colors border border-transparent hover:border-zinc-800">
-                  <item.icon className="w-5 h-5 text-emerald-500 shrink-0" />
-                  <div>
-                    <h4 className="text-white font-medium text-sm">{item.title}</h4>
-                    <p className="text-xs text-zinc-500">{item.desc}</p>
-                  </div>
+        <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">The Nonstationarity Problem</h2>
+        <p className="text-zinc-400 leading-relaxed mb-6">
+          EEG recordings are nonstationary at multiple timescales. Within a single trial, the neural response 
+          evolves from a pre-stimulus baseline through early sensory processing (P1/N1 components at ~100–170 ms) into later cognitive stages (P300, N400, etc.).
+          Across repeated presentations of the same stimulus, habituation, adaptation, attentional fluctuations, and electrode drift can all produce slow changes in the response distribution.
+        </p>
+        <p className="text-zinc-400 leading-relaxed mb-8">
+          These nonstationarities are not merely nuisances. They carry information about the underlying neural computation: a shift in the variance regime within an epoch may mark the boundary between feedforward sensory processing and recurrent top-down modulation.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8">
+          <div className="space-y-4">
+            {[
+              { icon: Activity, title: "Sensory Processing", desc: "P1/N1 components at ~100–170 ms" },
+              { icon: Zap, title: "Cognitive Stages", desc: "P300, N400, and beyond" },
+              { icon: Target, title: "Adaptation", desc: "Habituation and attentional fluctuations" }
+            ].map((item, i) => (
+              <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-zinc-900/50 transition-colors border border-transparent hover:border-zinc-800">
+                <item.icon className="w-5 h-5 text-emerald-500 shrink-0" />
+                <div>
+                  <h4 className="text-white font-medium text-sm">{item.title}</h4>
+                  <p className="text-xs text-zinc-500">{item.desc}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-          <div className="relative space-y-8">
-            <RawEEGViewer />
-            <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
-               <h4 className="text-white font-bold mb-2 flex items-center gap-2">
-                 <Waves className="w-4 h-4 text-emerald-500" />
-                 Variance Dynamics
-               </h4>
-               <p className="text-xs text-zinc-400 leading-relaxed">
-                 Variance increases monotonically from baseline through the post-stimulus period: baseline ≈ 0.05, early 0–200 ms ≈ 0.08, late 200–800 ms ≈ 0.12. This structure is consistent with stimulus-evoked activity superimposed on ongoing fluctuations and motivates the use of windowed log variance for within-epoch BOCPD.
-               </p>
-            </div>
-          </div>
+          <RawEEGViewer />
+        </div>
+        <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
+          <h4 className="text-white font-bold mb-2 flex items-center gap-2">
+            <Waves className="w-4 h-4 text-emerald-500" />
+            Variance Dynamics
+          </h4>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Variance increases monotonically from baseline through the post-stimulus period: baseline ≈ 0.05, early 0–200 ms ≈ 0.08, late 200–800 ms ≈ 0.12. This structure is consistent with stimulus-evoked activity superimposed on ongoing fluctuations and motivates the use of windowed log variance for within-epoch BOCPD.
+          </p>
         </div>
         <div className="mt-12 w-screen relative left-1/2 -translate-x-1/2">
           <div className="max-w-6xl mx-auto px-6 md:px-12">
@@ -361,25 +357,25 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             <div>
               <h3 className="text-2xl font-bold text-white mb-4">Across-Repetition Analysis</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-                BOCPD was applied to 60 sequences (3 participants × 20 conditions, channel P1, alpha band, 80 repetitions each). The maximum changepoint probability per condition ranged from 0.044 to 0.455.
+              <p className="text-zinc-400 text-sm leading-relaxed mb-2">
+                <span className="text-emerald-400 font-medium">Single channel (P1):</span> BOCPD on 60 sequences (3 participants × 20 conditions, alpha band, 80 reps each). Max CP prob ranged 0.044–0.455. 10/60 conditions (17%) show max CP &gt; 0.15.
               </p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-                With a prior hazard of h = 0.05, any changepoint probability substantially above 0.05 indicates evidence for a regime shift. 10/60 conditions (17%) show max CP prob &gt; 0.15. The highest (sub-10, condition 182, CP prob = 0.455) represents very strong evidence; the lowest (0.045) is indistinguishable from the prior.
+                We then aggregated log bandpower over all 17 channels (mean per rep) and re-ran BOCPD — channel aggregation substantially improves detection.
               </p>
               <DataTable 
-                title="Across-Repetition Summary" 
+                title="Across-Repetition Summary (Single Channel)" 
                 data={data.ACROSS_REPS_SUMMARY} 
                 headers={['participant', 'condition', 'max_cp_prob']} 
-                description="Top conditions showing regime shifts across 80 repetitions."
+                description="Top conditions, P1 only."
               />
             </div>
             <div className="space-y-8">
               <InteractiveChart 
                 type="bar"
-                title="Max Changepoint Probability (Top Conditions)"
-                data={data.ACROSS_REPS_SUMMARY.slice(0, 8)}
-                xKey="condition"
+                title="Single Channel (P1) — Top Conditions"
+                data={data.ACROSS_REPS_SUMMARY.slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
+                xKey="name"
                 yKey="max_cp_prob"
                 referenceLine={0.05}
                 color="#f59e0b"
@@ -387,9 +383,69 @@ export default function App() {
               <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
                 <h4 className="text-white font-bold mb-2">Interpretation</h4>
                 <p className="text-xs text-zinc-400 leading-relaxed italic">
-                  Alpha bandpower is not uniformly stationary across repetitions for all conditions. Some images evoke adaptation or drift effects that BOCPD can detect. Per-participant: sub-01 (mean max CP 0.124, 5/20 cond &gt; 0.15), sub-05 (0.110, 3/20), sub-10 (0.105, 2/20).
+                  Alpha bandpower is not uniformly stationary across repetitions. sub-10 cond 182 = 0.455 (strongest single-channel). Aggregating over channels exposes more regime shifts.
                 </p>
               </div>
+            </div>
+          </div>
+
+          <div className="pt-16 border-t border-zinc-800">
+            <h3 className="text-2xl font-bold text-white mb-6">Single Channel vs Channel-Aggregated</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+              Averaging log bandpower over 17 channels reduces channel-specific noise and exposes regime shifts that a single electrode may miss. Same design (sub-01, sub-05, sub-10 × 20 conditions, alpha band).
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-2">Mean max CP prob</div>
+                <div className="text-2xl font-bold text-white">0.113 <span className="text-zinc-500 font-normal">→</span> <span className="text-emerald-500">0.187</span></div>
+                <div className="text-xs text-emerald-500 mt-1">+65%</div>
+              </div>
+              <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-2">Conditions &gt; 0.15</div>
+                <div className="text-2xl font-bold text-white">10 <span className="text-zinc-500 font-normal">→</span> <span className="text-emerald-500">31</span></div>
+                <div className="text-xs text-emerald-500 mt-1">3× more</div>
+              </div>
+              <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-2">Max max CP prob</div>
+                <div className="text-2xl font-bold text-white">0.455 <span className="text-zinc-500 font-normal">→</span> <span className="text-emerald-500">0.610</span></div>
+                <div className="text-xs text-emerald-500 mt-1">sub-05 cond 158</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <InteractiveChart 
+                type="bar"
+                title="Single Channel (P1)"
+                data={[...data.ACROSS_REPS_SUMMARY].sort((a, b) => b.max_cp_prob - a.max_cp_prob).slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
+                xKey="name"
+                yKey="max_cp_prob"
+                referenceLine={0.15}
+                color="#f59e0b"
+                height={280}
+              />
+              <InteractiveChart 
+                type="bar"
+                title="Channel-Aggregated (mean over 17 ch)"
+                data={[...(data.ACROSS_REPS_AGGREGATE_SUMMARY || [])].sort((a, b) => b.max_cp_prob - a.max_cp_prob).slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
+                xKey="name"
+                yKey="max_cp_prob"
+                referenceLine={0.15}
+                color="#10b981"
+                height={280}
+              />
+            </div>
+            <div className="mt-6 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+              <h4 className="text-white font-bold mb-2">Key finding</h4>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                sub-05 cond 158: 0.093 (single) → 0.610 (aggregate) — a sixfold increase. sub-10 cond 182 was already strong with P1 alone (0.455); aggregate 0.389. Use channel-aggregated features when a single optimal channel is unknown.
+              </p>
+            </div>
+            <div className="mt-6">
+              <DataTable 
+                title="Channel-Aggregated Summary" 
+                data={data.ACROSS_REPS_AGGREGATE_SUMMARY || []} 
+                headers={['participant', 'condition', 'max_cp_prob']} 
+                description="BOCPD on mean log bandpower over 17 channels."
+              />
             </div>
           </div>
 
