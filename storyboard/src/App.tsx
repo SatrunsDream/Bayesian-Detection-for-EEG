@@ -83,9 +83,12 @@ export default function App() {
             BAYESIAN <br />
             <span className="text-emerald-500">NEURAL</span> SHIFTS
           </h1>
-          <p className="text-lg md:text-xl text-zinc-500 max-w-2xl mx-auto font-light leading-relaxed">
+          <p className="text-lg md:text-xl text-zinc-500 max-w-2xl mx-auto font-light leading-relaxed mb-4">
             Bayesian Online Change-Point Detection for EEG Regime-Shift Analysis: 
             A Study on the THINGS-EEG Dataset
+          </p>
+          <p className="text-sm text-zinc-600">
+            Made by Sardor Sobirov and Diego Arevalo Fernandez
           </p>
         </motion.div>
 
