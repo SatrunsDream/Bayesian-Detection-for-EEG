@@ -121,11 +121,11 @@ export default function App() {
             these regime shifts occur is fundamental to understanding neural processing dynamics, designing adaptive brain-computer interfaces (BCIs), and flagging artifacts.
           </p>
           <p className="text-lg leading-relaxed text-zinc-400 mt-6">
-            In this work we apply <strong>Bayesian Online Change-Point Detection (BOCPD)</strong> to the THINGS-EEG dataset, a large-scale visual object recognition EEG corpus (10 participants, 16,740 unique image conditions, 17 posterior channels, 100 Hz).
+            In this work we apply <strong>Bayesian Online Change-Point Detection (BOCPD)</strong> to the THINGS-EEG dataset — a large-scale visual object recognition EEG corpus (10 participants, 16,740 unique image conditions, 17 posterior channels, 100 Hz).
             We extract interpretable scalar features (log bandpower, windowed mean amplitude, windowed log variance), feed them into a conjugate-Gaussian BOCPD model, and evaluate the resulting changepoint posteriors against the known temporal structure of visual evoked potentials.
           </p>
           <p className="text-base leading-relaxed text-zinc-500 mt-4">
-            <strong className="text-zinc-400">Key findings:</strong> (a) BOCPD detects regime shifts in log bandpower across repetitions for ~17% of conditions (max CP prob = 0.455); (b) within-epoch windowed variance, but not mean, elicits changepoint probabilities above the prior for 8/10 participants (peak latency 295–645 ms); (c) synthetic validation confirms 91% detection at effect size 2.0 with 1% false-positive rate.
+            <strong className="text-zinc-400">Key findings:</strong> (a) BOCPD detects regime shifts in log bandpower across repetitions for ~17% of conditions (max CP prob = 0.455); (b) within-epoch windowed variance—but not mean—elicits changepoint probabilities above the prior for 8/10 participants (peak latency 295–645 ms); (c) synthetic validation confirms 91% detection at effect size 2.0 with 1% false-positive rate.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
             <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
@@ -259,13 +259,15 @@ export default function App() {
               yKey="power_mean"
               color="#34d399"
             />
-            <DataTable 
-              title="Quality Control Summary" 
-              data={data.QC_SUMMARY} 
-              headers={['participant', 'pct_outliers', 'acf_lag1_mean', 'snr_mean', 'flag_high_outliers']} 
-              description="Participant-wise quality metrics and outlier flags."
-            />
           </div>
+        </div>
+        <div className="mt-12 w-full">
+          <DataTable 
+            title="Quality Control Summary" 
+            data={data.QC_SUMMARY} 
+            headers={['participant', 'pct_outliers', 'acf_lag1_mean', 'snr_mean', 'flag_high_outliers']} 
+            description="Participant-wise quality metrics and outlier flags."
+          />
         </div>
         <div className="mt-12 p-8 rounded-2xl bg-zinc-900/30 border border-zinc-800 w-full">
           <h4 className="text-white font-bold mb-6 flex items-center gap-2">
@@ -283,7 +285,7 @@ export default function App() {
             </div>
             <div>
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Drift across repetitions</p>
-              <p>Mean amplitude across 8 bins of 10 test repetitions shows flat or mildly fluctuating trajectories. No strong systematic drift.</p>
+              <p>Mean amplitude across 8 bins of 10 test repetitions shows flat or mildly fluctuating trajectories — no strong systematic drift.</p>
             </div>
             <div>
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Spectral bandpower</p>
@@ -323,7 +325,7 @@ export default function App() {
             </div>
             <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Drift across repetitions</p>
-              <p className="text-xs text-zinc-400 leading-relaxed">Mean amplitude across repetition bins was mostly flat. No gross monotonic drift. If BOCPD finds changepoints, it’s not trivial drift.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Mean amplitude across repetition bins was mostly flat — no gross monotonic drift. If BOCPD finds changepoints, it’s not trivial drift.</p>
             </div>
             <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Spectral bandpower</p>
@@ -347,20 +349,20 @@ export default function App() {
             <div>
               <p className="font-mono text-sm text-emerald-500 mb-2">Log bandpower</p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                Used for across-repetition analysis. Welch’s method for PSD, then integrate within each canonical band. If S(f) is the PSD, bandpower is P_b = integral of S(f) over band, then apply log: ℓ_b = log P_b. The log compresses the right tail and makes the distribution more symmetric; that’s why we checked Gaussianity of log bandpower, not raw power.
+                Used for across-repetition analysis. Welch’s method for PSD, then integrate within each canonical band. If S(f) is the PSD, bandpower is P_b = integral of S(f) over band, then apply log: ℓ_b = log P_b. The log compresses the right tail and makes the distribution more symmetric — that’s why we checked Gaussianity of log bandpower, not raw power.
               </p>
               <p className="text-xs text-zinc-500 font-mono">After extraction: train (16540, 4, 17, 5), test (200, 80, 17, 5). Last axis = 5 bands.</p>
             </div>
             <div>
               <p className="font-mono text-sm text-emerald-500 mb-2">Windowed mean amplitude</p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                For within-epoch analysis. Grand-average time series with 10-sample window, stride 5. At 100 Hz: 100 ms windows, 50 ms stride. Window mean = (1/W) sum of x_i over window. Produces ~19 windows from the 100-point epoch, a coarse summary of local average amplitude over time.
+                For within-epoch analysis. Grand-average time series with 10-sample window, stride 5. At 100 Hz: 100 ms windows, 50 ms stride. Window mean = (1/W) sum of x_i over window. Produces ~19 windows from the 100-point epoch — coarse summary of local average amplitude over time.
               </p>
             </div>
             <div>
               <p className="font-mono text-sm text-emerald-500 mb-2">Windowed log variance</p>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                Same windowing, but compute variance inside each window and log it: v_k = Var of x_i in window k, then ℓ_k = log(v_k + ε). Captures temporal variability within the epoch. EDA showed baseline &lt; early &lt; late variance; strong motivation before BOCPD.
+                Same windowing, but compute variance inside each window and log it: v_k = Var of x_i in window k, then ℓ_k = log(v_k + ε). Captures temporal variability within the epoch. EDA showed baseline &lt; early &lt; late variance — strong motivation before BOCPD.
               </p>
             </div>
           </div>
@@ -376,7 +378,7 @@ export default function App() {
               <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
                 <h4 className="text-white font-bold mb-2">Temporal variance: baseline &lt; early &lt; late</h4>
                 <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-                  Variance over time within the epoch is consistent: baseline lowest, early post-stimulus higher, late highest (late roughly 2× baseline). This temporal change in second-order structure motivates variance as a changepoint feature.
+                  Variance over time within the epoch is consistent: baseline lowest, early post-stimulus higher, late highest — late roughly 2× baseline. This temporal change in second-order structure motivates variance as a changepoint feature.
                 </p>
                 <InteractiveChart
                   type="bar"
@@ -481,7 +483,7 @@ export default function App() {
                 <span className="text-emerald-400 font-medium">Single channel (P1):</span> BOCPD on 60 sequences (3 participants × 20 conditions, alpha band, 80 reps each). Max CP prob ranged 0.044–0.455. 10/60 conditions (17%) show max CP &gt; 0.15.
               </p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-                We then aggregated log bandpower over all 17 channels (mean per rep) and re-ran BOCPD. Channel aggregation substantially improves detection.
+                We then aggregated log bandpower over all 17 channels (mean per rep) and re-ran BOCPD — channel aggregation substantially improves detection.
               </p>
               <DataTable 
                 title="Across-Repetition Summary (Single Channel)" 
@@ -493,7 +495,7 @@ export default function App() {
             <div className="space-y-8">
               <InteractiveChart 
                 type="bar"
-                title="Single Channel (P1): Top Conditions"
+                title="Single Channel (P1) — Top Conditions"
                 data={data.ACROSS_REPS_SUMMARY.slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
                 xKey="name"
                 yKey="max_cp_prob"
@@ -556,7 +558,7 @@ export default function App() {
             <div className="mt-6 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
               <h4 className="text-white font-bold mb-2">Key finding</h4>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                sub-05 cond 158: 0.093 (single) → 0.610 (aggregate), a sixfold increase. sub-10 cond 182 was already strong with P1 alone (0.455); aggregate 0.389. Use channel-aggregated features when a single optimal channel is unknown.
+                sub-05 cond 158: 0.093 (single) → 0.610 (aggregate) — a sixfold increase. sub-10 cond 182 was already strong with P1 alone (0.455); aggregate 0.389. Use channel-aggregated features when a single optimal channel is unknown.
               </p>
             </div>
             <div className="mt-6">
@@ -573,7 +575,7 @@ export default function App() {
             <div>
               <h3 className="text-2xl font-bold text-white mb-4">Within-Epoch Variance</h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                <strong className="text-emerald-400">Windowed mean (negative result):</strong> BOCPD on grand-average windowed mean produced no detection: max CP prob equals hazard for all 10 participants. Averaging smooths away condition-specific ERP structure.
+                <strong className="text-emerald-400">Windowed mean (negative result):</strong> BOCPD on grand-average windowed mean produced no detection—max CP prob equals hazard for all 10 participants. Averaging smooths away condition-specific ERP structure.
               </p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-4">
                 <strong className="text-emerald-400">Windowed variance:</strong> BOCPD on windowed log variance (19 windows, h = 0.02) produced elevated CP probabilities for 8/10 participants. Peak latencies post-stimulus (295–645 ms). sub-05 max CP prob 0.108 (5.4× hazard); sub-06/sub-10 weakest (1.8–1.9×).
@@ -595,6 +597,32 @@ export default function App() {
           <div className="pt-16 border-t border-zinc-800">
             <div className="p-8 rounded-3xl bg-zinc-900/30 border border-zinc-800 w-full">
               <h3 className="text-xl font-bold text-white mb-6">Synthetic Validation</h3>
+
+              <div className="mb-8 p-6 rounded-xl bg-zinc-900/50 border border-zinc-800 space-y-4">
+                <h4 className="text-sm font-bold text-white">How it was conducted</h4>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  To establish the operating characteristics of BOCPD, we generated synthetic sequences with known changepoints. No real EEG was used; all data was simulated.
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  <strong className="text-zinc-300">Data:</strong> For each condition, 100 sequences of length 100 were generated, each with a single changepoint at t = 50 (midpoint). Sequence length matches the ~19 windowed features or the 80 test repetitions in our real analyses.
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  <strong className="text-zinc-300">Mean shift:</strong> Pre-change samples drawn from N(0, 1); post-change from N(δ, 1). Effect sizes δ = 0.5, 1.0, 1.5, 2.0. The mean jumps by δ units at t = 50.
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  <strong className="text-zinc-300">Variance shift:</strong> Pre-change N(0, 1); post-change N(0, δ²). Effect sizes δ = 1.5, 2.0, 2.5, 3.0. The variance increases by a factor of δ² at t = 50; mean stays zero.
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  <strong className="text-zinc-300">No-changepoint (stationary):</strong> 100 sequences from N(0, 1) throughout. Used to measure false positive rate.
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  <strong className="text-zinc-300">BOCPD:</strong> Same Gaussian conjugate model and hazard rate as in the main analyses. For each sequence, we ran BOCPD and recorded the run-length posterior and changepoint probability at each step.
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  <strong className="text-zinc-300">Detection criterion:</strong> A changepoint was counted as detected if the max changepoint probability exceeded 0.5 and occurred within ±5 steps of the true changepoint (t = 50). False positive rate = fraction of stationary sequences with max CP prob &gt; 0.5.
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 <div className="lg:col-span-2">
                   <InteractiveChart 
@@ -609,14 +637,14 @@ export default function App() {
                 </div>
                 <div className="space-y-4">
                   <p className="text-sm text-zinc-500 leading-relaxed">
-                    Mean shift: detection rate scales with effect size, reaching 91% at δ = 2.0; mean latency near zero. Variance shifts: 24–33% rate; mean max CP prob 0.37→0.77; delayed detection (+22 to +27 steps).
+                    Mean shift: detection rate scales with effect size, reaching 91% at δ = 2.0; mean latency near zero. Variance shifts: 24 to 33% rate; mean max CP prob 0.37 to 0.77; delayed detection (+22 to +27 steps).
                   </p>
                   <p className="text-sm text-zinc-500 leading-relaxed">
-                    Stationary: mean max CP prob = 0.142, FPR 1%. Real EEG (0.04–0.11) &lt; synthetic (0.37–0.77) indicates gradual within-epoch transition.
+                    Stationary: mean max CP prob = 0.142, FPR 1%. Real EEG (0.04 to 0.11) &lt; synthetic (0.37 to 0.77) indicates gradual within-epoch transition.
                   </p>
                   <div className="p-4 rounded-xl bg-black/40 border border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-widest leading-relaxed space-y-2">
                     <p>Mean: 91% at δ=2.0; FPR 1%</p>
-                    <p>Variance: 24–33%; max CP 0.77</p>
+                    <p>Variance: 24 to 33%; max CP 0.77</p>
                   </div>
                 </div>
               </div>
@@ -643,7 +671,7 @@ export default function App() {
               <strong className="text-white">Windowed mean</strong> after grand-averaging is nearly flat because averaging across 16,540 conditions with diverse ERP waveforms cancels out condition-specific temporal structure. The result is a smooth, near-zero trace that BOCPD (correctly) identifies as stationary.
             </p>
             <p className="text-zinc-400 leading-relaxed">
-              <strong className="text-white">Windowed variance</strong> is a second-order statistic reflecting the dispersion of single-trial activity at each timepoint. Even after averaging, the monotonic baseline-to-late increase in variance is preserved. Post-stimulus activity is more variable than baseline. This gradual regime shift is detectable by BOCPD (max CP prob up to 0.108) because the shift is genuine, albeit smooth.
+              <strong className="text-white">Windowed variance</strong> is a second-order statistic reflecting the dispersion of single-trial activity at each timepoint. Even after averaging, the monotonic baseline-to-late increase in variance is preserved—post-stimulus activity is more variable than baseline. This gradual regime shift is detectable by BOCPD (max CP prob up to 0.108) because the shift is genuine, albeit smooth.
             </p>
             <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
               <h4 className="text-white font-bold mb-2">Key Insight</h4>
@@ -655,7 +683,7 @@ export default function App() {
           <div className="space-y-8">
             <h4 className="text-sm font-mono uppercase tracking-widest text-zinc-500">Limitations</h4>
             <div className="space-y-3 text-sm text-zinc-400 leading-relaxed">
-              <p>Our Gaussian model assumes known variance; optimal for mean shifts but suboptimal for variance shifts. A Normal-Inverse-Gamma model would jointly infer mean and variance. Grand-averaging collapses condition-specific structure; single-trial analysis would yield richer dynamics. Single channel/band; multi-channel aggregation could improve sensitivity.</p>
+              <p>Our Gaussian model assumes known variance—optimal for mean shifts but suboptimal for variance shifts. A Normal-Inverse-Gamma model would jointly infer mean and variance. Grand-averaging collapses condition-specific structure; single-trial analysis would yield richer dynamics. Single channel/band; multi-channel aggregation could improve sensitivity.</p>
             </div>
             <h4 className="text-sm font-mono uppercase tracking-widest text-zinc-500">Future Directions</h4>
             <div className="space-y-4">
