@@ -58,7 +58,10 @@ storyboard/
         ├── InteractiveChart.tsx # Recharts: bar, line, area; supports height, referenceLine
         ├── RawEEGViewer.tsx    # Animated multi-channel EEG simulation (d3)
         ├── RunLengthVis.tsx    # Run-length + observed data viz (d3), Play/Pause
-        ├── BOCPDLogic.tsx     # Real-time inference demo
+        ├── DataTensorVis.tsx       # 4D tensor schematic (conditions × reps × ch×time)
+        ├── FeatureTensorSchematic.tsx  # 3 feature structures
+        ├── LogBandpowerChart.tsx   # Log bandpower mean per band (Gaussian)
+        ├── BOCPDLogic.tsx         # Real-time inference demo
         └── EEGPlaceholder.tsx  # Legacy D3 placeholder
 ```
 
@@ -80,6 +83,9 @@ storyboard/
 | `InteractiveChart` | Recharts wrapper for bar, line, or area. Custom tooltips, optional `referenceLine`. | `type`, `data`, `xKey`, `yKey`, `color?`, `title?`, `height?` (default 300), `referenceLine?` |
 | `RawEEGViewer` | Animated 8-channel EEG stream (d3, requestAnimationFrame). | — |
 | `RunLengthVis` | Two-panel: observed data + run-length; changepoints (red dashed). Play/Pause. | — |
+| `DataTensorVis` | 4D tensor schematic: conditions → reps → 17×100 cells; shapes (16540,4,17,100) / (200,80,17,100). | — |
+| `FeatureTensorSchematic` | Three feature structures: log bandpower (16540,4,17,5), windowed mean (~19 windows), windowed log variance. | — |
+| `LogBandpowerChart` | Bar chart of log bandpower mean per band (SPECTRAL_BANDPOWER); shows approximately Gaussian distribution. | — |
 | `BOCPDLogic` | Compact real-time inference demo. Auto-loops. | — |
 | `EEGPlaceholder` | Legacy D3 placeholder (raw/prob/runlength). | — |
 
@@ -100,7 +106,10 @@ storyboard/
 - **Below grid:** Temporal Variance Structure chart — **breakout layout** (`w-screen left-1/2 -translate-x-1/2`, `max-w-6xl`) so it spans wider than section content. All 10 participants.
 
 ### dataset
-- **Layout:** 3-col grid (lg); then full-width EDA box at bottom.
+- **Layout:** THINGS-EEG heading → full data structure explanation (4 paragraphs) → DataTensorVis (4D schematic) → 3-col grid (stats, QC, Spectral chart, table) → full-width EDA box.
+
+### features (04)
+- **Layout:** EDA conceptual purpose (6 cards: value ranges, within-condition var, drift, spectral, temporal, QC) → three design questions → Feature extraction in detail (log bandpower, windowed mean, windowed log variance) → FeatureTensorSchematic (3 feature structures) → LogBandpowerChart + Gaussian check figure + Temporal variance chart (baseline &lt; early &lt; late).
 - **Left (col 1):** THINGS-EEG heading, dataset description, Participants/Channels cards, QC Summary box.
 - **Right (col 2-3):** Spectral Power Distribution chart; Quality Control Summary DataTable.
 - **Bottom (full width):** Exploratory Data Analysis — 5 findings in 3-col grid (Value ranges, Within-condition variance, Drift, Spectral bandpower, Quality control).
