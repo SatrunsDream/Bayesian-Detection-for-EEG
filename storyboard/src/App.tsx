@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'motion/react';
 import { 
   Brain, 
@@ -31,10 +31,12 @@ import { RunLengthVis } from './components/RunLengthVis';
 import { DataTensorVis } from './components/DataTensorVis';
 import { FeatureTensorSchematic } from './components/FeatureTensorSchematic';
 import { LogBandpowerChart } from './components/LogBandpowerChart';
+import { PdfViewerModal } from './components/PdfViewerModal';
 import { cn } from './lib/utils';
 import * as data from './data/researchData';
 
 export default function App() {
+  const [pdfModal, setPdfModal] = useState<'report' | 'contract' | null>(null);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -44,6 +46,20 @@ export default function App() {
 
   return (
     <div className="bg-[#050505] text-zinc-300 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+      {/* PDF viewer modals */}
+      <PdfViewerModal
+        isOpen={pdfModal === 'report'}
+        onClose={() => setPdfModal(null)}
+        src="/report.pdf"
+        title="Bayesian Neural Shifts — Report"
+      />
+      <PdfViewerModal
+        isOpen={pdfModal === 'contract'}
+        onClose={() => setPdfModal(null)}
+        src="/contract.pdf"
+        title="Bayesian Neural Shifts — Contract"
+      />
+
       {/* Progress Bar */}
       <motion.div 
         className="fixed top-0 left-0 right-0 h-1 bg-emerald-500 origin-left z-50"
@@ -102,14 +118,24 @@ export default function App() {
               <Github className="w-4 h-4" />
               GitHub
             </a>
-            <a href="#" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm">
+            <button
+              type="button"
+              onClick={() => setPdfModal('report')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm"
+              title="View report PDF"
+            >
               <FileText className="w-4 h-4" />
               Paper
-            </a>
-            <a href="#" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm">
+            </button>
+            <button
+              type="button"
+              onClick={() => setPdfModal('contract')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm"
+              title="View contract PDF"
+            >
               <FileSignature className="w-4 h-4" />
               Contract
-            </a>
+            </button>
           </div>
         </motion.div>
 
