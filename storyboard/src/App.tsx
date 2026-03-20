@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'motion/react';
 import { 
   Brain, 
@@ -36,8 +36,38 @@ import { cn } from './lib/utils';
 import * as data from './data/researchData';
 
 export default function App() {
-  const [pdfModal, setPdfModal] = useState<'report' | 'contract' | null>(null);
+  const [pdfModal, setPdfModal] = useState<'paper' | 'contract' | null>(() => {
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname;
+      if (p === '/paper') return 'paper';
+      if (p === '/contract') return 'contract';
+    }
+    return null;
+  });
   const { scrollYProgress } = useScroll();
+
+  // Sync modal with URL for shareable links: /paper and /contract
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const path = window.location.pathname;
+      if (path === '/paper') setPdfModal('paper');
+      else if (path === '/contract') setPdfModal('contract');
+      else setPdfModal(null);
+    };
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, []);
+
+  const openPdf = (which: 'paper' | 'contract') => {
+    setPdfModal(which);
+    window.history.pushState({}, '', `/${which}`);
+  };
+
+  const closePdf = () => {
+    setPdfModal(null);
+    window.history.pushState({}, '', '/');
+  };
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
@@ -48,14 +78,14 @@ export default function App() {
     <div className="bg-[#050505] text-zinc-300 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
       {/* PDF viewer modals */}
       <PdfViewerModal
-        isOpen={pdfModal === 'report'}
-        onClose={() => setPdfModal(null)}
+        isOpen={pdfModal === 'paper'}
+        onClose={closePdf}
         src="/report.pdf"
         title="Bayesian Neural Shifts — Report"
       />
       <PdfViewerModal
         isOpen={pdfModal === 'contract'}
-        onClose={() => setPdfModal(null)}
+        onClose={closePdf}
         src="/contract.pdf"
         title="Bayesian Neural Shifts — Contract"
       />
@@ -120,7 +150,7 @@ export default function App() {
             </a>
             <button
               type="button"
-              onClick={() => setPdfModal('report')}
+              onClick={() => openPdf('paper')}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm"
               title="View report PDF"
             >
@@ -129,7 +159,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              onClick={() => setPdfModal('contract')}
+              onClick={() => openPdf('contract')}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm"
               title="View contract PDF"
             >

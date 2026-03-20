@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/report", "destination": "/report.pdf" },
-    { "source": "/contract", "destination": "/contract.pdf" }
+    { "source": "/paper", "destination": "/index.html" },
+    { "source": "/contract", "destination": "/index.html" }
   ]
 }
