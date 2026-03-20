@@ -1,6 +1,6 @@
 # Neural Shifts — Storyboard
 
-Interactive web interface for the **Bayesian Online Change-Point Detection for EEG** project. A scroll-driven narrative ("scrollytelling") that visualizes research findings from the THINGS-EEG dataset.
+Scroll-driven narrative (scrollytelling) for the **Bayesian Online Change-Point Detection for EEG** project. Interactive visualizations of THINGS-EEG findings: across-repetition changepoint detection, within-epoch variance analysis, channel aggregation effects, and synthetic validation.
 
 ---
 

@@ -1,0 +1,651 @@
+% !TEX TS-program = xelatex
+% !BIB TS-program = bibtex
+\documentclass[11pt,letterpaper]{article}
+\usepackage{style/dsc180reportstyle} % UCSD Capstone style file
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{float}
+\usepackage{csvsimple}
+\usepackage{amsmath}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{pdfpages} 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Title and Authors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Bayesian Neural Shifts}
+
+\author{Sardor Sobirov \\
+  {\tt ssobirov@ucsd.edu} \\\And
+  Diego Arevalo Fernandez \\
+  {\tt email@ucsd.edu} \\}
+
+\begin{document}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Abstract and Links
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{abstract}
+    {
+   At a high level, this project asks a very specific question: when does the statistical behavior of EEG change? The method used for that is Bayesian Online Change-Point Detection, or BOCPD. The project applies it to two different notions of time: time across repeated stimulus presentations and time within a single EEG epoch after a stimulus appears. The dataset is THINGS-EEG, with 10 participants, 17 posterior channels, and preprocessed 1-second stimulus-locked EEG epochs.
+    }
+\end{abstract}
+
+\begin{center}
+Website: \url{https://bayesian-detection-for-eeg.vercel.app} \\
+Code: \url{https://github.com/SatrunsDream/Bayesian-Detection-for-EEG}
+\end{center}
+
+\maketoc
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Main Contents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+Visual object recognition is a fundamental cognitive process through which the human brain transforms raw sensory input into structured semantic representations. Prior work in computational neuroscience has shown that this transformation unfolds through multiple linear and nonlinear stages operating at millisecond timescales, progressively mapping simple visual features into high-level object categories \citep{adams2007bocpd}. Capturing these rapid dynamics requires both high temporal resolution measurements and sufficiently large datasets to support modern modeling approaches.
+
+Recent advances in machine learning, particularly deep neural networks (DNNs), have enabled significant progress in modeling neural responses to visual stimuli. However, as emphasized in prior research, these models are inherently data-hungry and require large-scale neural datasets to achieve meaningful generalization. Traditional neuroscience datasets are often limited in size, restricting the ability to study complex temporal dynamics and to train expressive computational models \citep{adams2007bocpd}. The THINGS-EEG dataset addresses this limitation by providing a large-scale collection of EEG recordings with both high temporal resolution and extensive stimulus diversity, enabling new forms of analysis on neural dynamics.
+
+While existing work on this dataset has focused primarily on predictive encoding models, which aim to map visual features to neural responses, these approaches typically assume that the underlying data-generating process is stationary within the modeled intervals. In practice, however, neural signals are inherently nonstationary, reflecting dynamic transitions between different cognitive and perceptual processing stages. Even within a single stimulus-locked EEG epoch, the brain’s response evolves over time, while across repeated trials, neural activity may shift due to adaptation, attention, or fatigue.
+
+A natural framework for addressing such nonstationarity is change-point detection, which seeks to identify abrupt changes in the generative parameters of sequential data. Formally, changepoints correspond to boundaries between segments in which observations are assumed to be drawn from distinct underlying distributions \citep{gifford2022things_eeg}. This perspective aligns closely with neural data, where different phases of processing may correspond to different statistical regimes.
+
+Among changepoint methods, Bayesian Online Change-Point Detection (BOCPD) provides a probabilistic approach to identifying such regime shifts in real time. Rather than performing retrospective segmentation, BOCPD maintains a posterior distribution over the run length, defined as the time since the last changepoint, and updates this distribution sequentially as new observations arrive \citep{gifford2022things_eeg}. This formulation enables the model to continuously infer whether the current data is consistent with past observations or indicative of a new regime, making it particularly well-suited for analyzing temporally evolving signals such as EEG.
+
+In this work, we bring together these two lines of research: large-scale EEG modeling and Bayesian changepoint detection. Using the THINGS-EEG dataset, we apply BOCPD to features extracted from EEG signals in order to identify when statistical properties of neural activity change. Rather than focusing solely on prediction, our approach aims to uncover the temporal structure of neural processing by detecting regime transitions both within stimulus-locked epochs and across repeated stimulus presentations.
+
+\subsection{Data}
+
+The THINGS-EEG dataset was collected in an experiment where participants viewed images of objects in a rapid serial visual presentation (RSVP) paradigm. In this setup, each image was presented for 100 ms and new images appeared every 200 ms. The public dataset release already excludes target trials from the orthogonal detection task and provides preprocessed EEG epochs rather than raw continuous recordings.
+
+Each participant’s data is divided into two partitions: a training partition and a test partition. The training partition contains 16,540 unique image conditions, each repeated 4 times, while the test partition contains 200 unique image conditions, each repeated 80 times. Both partitions include the same 17 posterior electrodes and 100 timepoints per epoch, sampled at 100 Hz, corresponding to an epoch window spanning approximately $-200$ ms to $+795$ ms relative to stimulus onset.
+
+
+The EEG data for each participant can be represented as a four-dimensional NumPy array:
+
+\[
+(\text{conditions},\ \text{repetitions},\ \text{channels},\ \text{timepoints})
+\]
+
+For the training partition, the array has shape:
+
+\[
+(16540,\, 4,\, 17,\, 100)
+\]
+
+For the test partition, the array has shape:
+
+\[
+(200,\, 80,\, 17,\, 100)
+\]
+
+Thus, an element $X[c, r, j, t]$ corresponds to the EEG value recorded for condition $c$, repetition $r$, channel $j$, at timepoint $t$.
+
+
+A helpful way to mentally visualize the structure of the dataset is to consider how each axis of the array corresponds to a different aspect of the experiment.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+\textbf{Axis} & \textbf{Meaning} \\
+\hline
+conditions & Different image identities (stimulus conditions) \\
+repetitions & Repeated presentations of the same image \\
+channels & EEG electrodes (17 posterior scalp channels) \\
+timepoints & Time samples within the stimulus-locked epoch \\
+\hline
+\end{tabular}
+\caption{Interpretation of the four axes in the THINGS-EEG dataset array.}
+\end{table}
+
+For a fixed participant, moving along each axis corresponds to a different dimension of the experiment:
+
+\begin{itemize}
+\item Moving along the \textbf{conditions} axis selects different images.
+\item Moving along the \textbf{repetitions} axis selects repeated trials of the same image.
+\item Moving along the \textbf{channels} axis selects different EEG electrodes.
+\item Moving along the \textbf{timepoints} axis traverses the temporal evolution of the EEG response within a single trial.
+\end{itemize}
+
+Consequently, each pair $(c, r)$ corresponds to a small EEG matrix of size:
+
+\[
+17 \times 100
+\]
+
+representing the 17 recorded channels across 100 time samples within the stimulus-locked epoch. This matrix can be interpreted as the spatial-temporal neural response to a single presentation of an image.
+
+\section{EDA}
+
+\subsection{Signal Sanity Check: Grand-Average ERPs}
+
+Before applying any statistical analysis, we verify that the preprocessed EEG data exhibits the expected stimulus-locked structure. For each participant, we compute the grand-average event-related potential (ERP) by averaging across all training conditions, all repetitions, and all 17 posterior channels, yielding a single time series spanning $-200$ ms to $800$ ms relative to stimulus onset.
+
+The resulting ERPs show clear stimulus-locked neural activity across participants. As shown in Figure~\ref{fig:grand_avg_erp}, the channel-averaged ERP displays periodic peaks at approximately 100 ms intervals following stimulus onset. This aligns with the 200 ms stimulus onset asynchrony (SOA), where successive stimuli produce overlapping neural responses.
+
+Per-channel ERPs (Figure~\ref{fig:per_channel_erp}) demonstrate spatial consistency across the 17 occipital and parietal electrodes. Responses are strongest in posterior channels (Oz, O1, O2), consistent with early visual processing, toward lateral parietal regions. The channel-average ERP closely follows the midline occipital response, indicating that averaging preserves the dominant signal.
+
+To assess within-condition variability, Figure~\ref{fig:single_condition_reps} shows the ERP for a single image condition across its four training repetitions. Responses are highly consistent in the early post-stimulus window (0--200 ms) and exhibit greater variability in later time windows (200--800 ms). This increasing variability motivates subsequent analyses of across-repetition distributional shifts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figure/eda__grand_average_erp__2026-02-25.png}
+    \caption{Grand-average ERP (training partition, channel average) for a representative participant (sub-05). Periodic peaks align with the 200 ms RSVP stimulus presentation.}
+    \label{fig:grand_avg_erp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figure/eda__per_channel_erp__2026-02-25.png}
+    \caption{Per-channel ERPs across 17 posterior electrodes. Strongest responses occur in occipital channels (Oz, O1, O2), with decreasing amplitude toward parietal regions.}
+    \label{fig:per_channel_erp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figure/eda__single_condition_reps__2026-02-25.png}
+    \caption{ERP for a single image condition across four training repetitions. Early responses are consistent, while later responses show increased variability.}
+    \label{fig:single_condition_reps}
+\end{figure}
+
+\subsection{Participant-Level Quality and Outlier Assessment}
+\label{sec:qc}
+
+EEG data quality varies across participants, so we first evaluate several basic quality metrics before proceeding with further analysis. Specifically, we examine amplitude range, outlier trial rate, signal-to-noise ratio (SNR), and lag-1 autocorrelation. The results are summarized in Table~\ref{tab:participant_qc} and visualized in Figures~\ref{fig:channel_snr} and~\ref{fig:outliers_acf}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Participant} & \textbf{Amplitude Range} & \textbf{Outlier Trials (\%)} & \textbf{SNR} & \textbf{ACF (lag-1)} \\
+\hline
+sub-01 & -329 to +85  & 1.44 & 1.76 & 0.82 \\
+sub-02 & -68 to +190  & 0.91 & 2.20 & 0.72 \\
+sub-03 & -30 to +282  & 1.16 & 1.82 & 0.75 \\
+sub-04 & -180 to +191 & 3.16 & 2.64 & 0.82 \\
+sub-05 & -32 to +321  & 1.09 & 3.09 & 0.80 \\
+sub-06 & -43 to +261  & 1.10 & 3.53 & 0.79 \\
+sub-07 & -15 to +81   & 1.18 & 1.54 & 0.74 \\
+sub-08 & -16 to +151  & 1.80 & 1.77 & 0.82 \\
+sub-09 & -19 to +182  & 1.61 & 1.67 & 0.81 \\
+sub-10 & -14 to +111  & 1.08 & 1.89 & 0.79 \\
+\hline
+\end{tabular}
+\caption{Participant-level EEG quality metrics.}
+\label{tab:participant_qc}
+\end{table}
+
+Two participants stand out. Sub-01 and sub-04 show much larger amplitude ranges than the typical $\pm$15--45 range observed in the other participants. In addition, sub-04 has the highest outlier trial rate (3.16\%). These participants are flagged for quality concerns but are retained to avoid introducing bias by removing data post-hoc.
+
+All participants have SNR values greater than 1.0 (range: 1.54--3.53), indicating that stimulus-related activity is present and detectable across the dataset. This confirms that the data quality is sufficient for further analysis.
+
+Lag-1 autocorrelation is consistently high across participants (0.72--0.82), reflecting the smooth nature of EEG signals sampled at 100 Hz. Because consecutive time points are strongly correlated, using raw samples directly would violate independence assumptions. For this reason, we use windowed feature representations in later sections to reduce temporal dependence before applying BOCPD.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{figure/quality__channel_snr__2026-02-25.png}
+\caption{Channel-level signal-to-noise ratio (SNR) across participants.}
+\label{fig:channel_snr}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/quality__outliers_acf__2026-02-25.png}
+\caption{Outlier trial distribution and lag-1 autocorrelation across participants.}
+\label{fig:outliers_acf}
+\end{figure}
+
+\subsection{Temporal Dynamics Within an Epoch}
+\label{sec:temporal}
+
+A key question for the within-epoch analysis is whether the statistical properties of the EEG signal change over the course of a single 1-second epoch. If the variance remains constant over time, there is little reason to expect meaningful change-point detection. However, if the variance increases systematically, this suggests a structured transition that can be modeled.
+
+To investigate this, we compute the across-condition variance at each time point. Specifically, we first average the EEG signal across channels for each trial, then compute the variance across all conditions and repetitions at each time step. We also divide the epoch into three windows: baseline ($-200$ to $0$ ms), early post-stimulus ($0$--$200$ ms), and late post-stimulus ($200$--$800$ ms), and calculate the mean variance within each window.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Participant} & \textbf{Baseline} & \textbf{Early} & \textbf{Late} \\
+\hline
+sub-01 & 0.059 & 0.086 & 0.115 \\
+sub-02 & 0.065 & 0.085 & 0.108 \\
+sub-03 & 0.051 & 0.078 & 0.127 \\
+sub-04 & 0.039 & 0.064 & 0.133 \\
+sub-05 & 0.039 & 0.078 & 0.115 \\
+sub-06 & 0.038 & 0.074 & 0.113 \\
+sub-07 & 0.062 & 0.083 & 0.108 \\
+sub-08 & 0.062 & 0.097 & 0.132 \\
+sub-09 & 0.046 & 0.079 & 0.116 \\
+sub-10 & 0.044 & 0.077 & 0.114 \\
+\hline
+\end{tabular}
+\caption{Mean variance across baseline, early, and late time windows for each participant.}
+\label{tab:temporal_variance}
+\end{table}
+
+A consistent pattern emerges across all participants: variance increases from baseline to early and further into the late post-stimulus window. In many cases, variance approximately doubles between the baseline and late periods. Additionally, peak variance occurs near the end of the epoch (around 790 ms) for most participants, indicating that the signal continues to evolve rather than stabilizing after the initial response.
+
+This trend has an important implication for modeling. Mean-based features tend to average out condition-specific activity and produce relatively stable signals. In contrast, variance-based features capture how responses spread over time across conditions. As a result, variance provides a more informative signal for detecting changes in the underlying distribution and is better suited for the within-epoch BOCPD analysis.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/temporal__variance_over_time__2026-02-25.png}
+\caption{Variance over time within the epoch, showing a steady increase from baseline to late post-stimulus periods.}
+\label{fig:variance_over_time}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/temporal__variance_by_window__2026-02-25.png}
+\caption{Comparison of variance across baseline, early, and late windows. Variance increases consistently across all participants.}
+\label{fig:variance_by_window}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{figure/temporal__mean_over_time__2026-02-25.png}
+\caption{Mean signal over time. Compared to variance, the mean remains relatively stable and less informative for detecting temporal changes.}
+\label{fig:mean_over_time}
+\end{figure}
+
+\subsection{Spectral Bandpower and Gaussianity Check}
+\label{sec:spectral}
+
+The final step of our EDA is to validate the choice of observation model used in BOCPD. Our model assumes that the input features are approximately normally distributed. Here, we verify that log-transformed bandpower satisfies this assumption.
+
+For a subset of 300 conditions per participant, we compute the power spectral density (PSD) using Welch’s method and integrate over five standard frequency bands: $\delta$ (0.5--4 Hz), $\theta$ (4--8 Hz), $\alpha$ (8--13 Hz), $\beta$ (13--30 Hz), and $\gamma$ (30--50 Hz). We then apply a log transform to the bandpower values.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\hline
+\textbf{Band} & \textbf{Mean (log power)} & \textbf{Std} \\
+\hline
+$\delta$ & -3.51 & 0.91 \\
+$\theta$ & -3.07 & 0.95 \\
+$\alpha$ & -3.20 & 1.00 \\
+$\beta$  & -2.98 & 0.73 \\
+$\gamma$ & -4.27 & 0.96 \\
+\hline
+\end{tabular}
+\caption{Mean and standard deviation of log-transformed bandpower across frequency bands.}
+\label{tab:bandpower_stats}
+\end{table}
+
+As shown in Figure~\ref{fig:bandpower_distribution}, the log-transformed bandpower values are approximately Gaussian across all frequency bands. The $\beta$ band is the most concentrated (std = 0.73), while $\alpha$ and $\theta$ show slightly higher variability. Overall, none of the bands deviate strongly from a normal distribution.
+
+This result is important for modeling. Raw bandpower values are typically skewed with a heavy right tail, which does not match a Gaussian likelihood. The log transform reduces this skew and produces a more symmetric distribution, making the Gaussian assumption in BOCPD a reasonable approximation.
+
+Spatially, $\alpha$ power is strongest in occipital channels (Oz, O1, O2), consistent with known visual processing patterns, while $\beta$ activity is more prominent in parietal regions (e.g., Pz, P7, P8). For the across-repetition BOCPD analysis, we focus on the $\alpha$ band at channel P1, as it provides a balance between signal strength and variability across conditions.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/spectral__log_power_gaussian_check__2026-02-25}
+\caption{Distribution of log-transformed bandpower across frequency bands, showing approximate Gaussian shape.}
+\label{fig:bandpower_distribution}
+\end{figure}
+
+\section{Methods}
+
+\subsection{Feature Extraction}
+
+Raw EEG samples at 100 Hz exhibit strong temporal autocorrelation (lag-1 ACF of 0.72--0.82, see Section~\ref{sec:qc}), which violates the independence assumptions required by BOCPD. For this reason, we do not apply the model directly to raw time-series data. Instead, we extract summary features that reduce temporal dependence and are approximately Gaussian distributed. This approach follows the BOCPD framework, which operates on observed data assumed to be conditionally independent given the model \citep{adams2007bocpd}.
+
+\paragraph{Log Bandpower.} For the across-repetition analysis, we require a single value per trial that summarizes spectral content. We compute the power spectral density (PSD) using Welch’s method and integrate over the five standard frequency bands: $\delta$, $\theta$, $\alpha$, $\beta$, and $\gamma$:
+
+\[
+P_b = \int_{f_{b,\text{low}}}^{f_{b,\text{high}}} S(f)\, df
+\]
+
+We then apply a log transform:
+
+\[
+\ell_b = \log P_b
+\]
+
+which reduces skew and produces a more symmetric, approximately Gaussian distribution, as verified in the spectral analysis (Section~\ref{sec:spectral}). This results in one feature per (condition, repetition, channel, band), yielding arrays of shape $(200, 80, 17, 5)$ for the test partition.
+
+\paragraph{Windowed Mean and Log Variance.}
+For the within-epoch analysis, we construct a time-indexed feature sequence using sliding windows. We compute statistics over windows of $W=10$ samples (100 ms) with stride $S=5$ samples (50 ms), producing approximately 19 windows per epoch.
+
+For each window $k$, we compute:
+
+\[
+\bar{x}_k = \frac{1}{W} \sum_{i=kS}^{kS+W-1} x_i
+\]
+
+\[
+v_k = \log\left(\text{Var}\left(\{x_i : i \in [kS,\, kS+W-1]\}\right) + \epsilon\right)
+\]
+
+$\epsilon = 10^{-10}$ ensures numerical stability.
+
+The choice of variance-based features is supported by two observations from the EDA. First, as shown in the participant-level quality analysis (Section~\ref{sec:qc}), EEG signals exhibit strong temporal autocorrelation, making raw samples unsuitable for independent modeling. Second, the temporal dynamics analysis (Section~\ref{sec:temporal}) demonstrates that variance increases systematically over the course of the epoch, while the mean signal remains relatively stable after averaging across conditions. This indicates that variance captures meaningful changes in the distribution of neural responses over time.
+
+Consistent with prior work on EEG change detection \citep{schroeder2019fresped}, variance and power-based features provide a more informative representation for identifying regime shifts. As a result, windowed log variance serves as the primary feature for within-epoch BOCPD analysis.
+
+\subsection{Bayesian Online Change-Point Detection}
+
+We use the Bayesian Online Change-Point Detection (BOCPD) algorithm of \citet{adams2007bocpd} as our core detection method. BOCPD models a time series as a sequence of segments separated by changepoints, where observations within each segment are assumed to be i.i.d. The key latent variable is the run length $r_t$, defined as the number of time steps since the most recent changepoint. At each time step, the algorithm maintains a posterior distribution over $r_t$ and updates it sequentially as new observations arrive.
+
+\paragraph{Run-Length Posterior.}
+The central quantity is the filtering posterior $p(r_t \mid x_{1:t})$, computed via a recursive message-passing procedure over the joint distribution $p(r_t, x_{1:t})$. At each time step, two transitions are possible: the run length either grows (no changepoint) or resets to zero (changepoint):
+
+\[
+p(r_t = r_{t-1} + 1,\, x_{1:t}) = p(x_t \mid r_{t-1}, x_{\text{segment}})\,(1 - h)\,p(r_{t-1}, x_{1:t-1})
+\]
+
+\[
+p(r_t = 0,\, x_{1:t}) = p(x_t \mid \boldsymbol{\theta}_{\text{prior}})\,h \sum_{r_{t-1}} p(r_{t-1}, x_{1:t-1})
+\]
+
+Normalizing across all run lengths yields the posterior $p(r_t \mid x_{1:t})$. The primary quantity of interest is the changepoint probability:
+
+\[
+p(\text{CP at } t) = p(r_t = 0 \mid x_{1:t})
+\]
+
+A high value indicates strong evidence for a regime shift at time $t$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__synthetic_mean_shift__2026-02-27.png}
+\caption{Run-length posterior and changepoint probability for a synthetic sequence with a mean shift at $t=50$. Probability mass concentrates at $r_t = 0$ near the changepoint.}
+\label{fig:bocpd_synthetic}
+\end{figure}
+
+\paragraph{Gaussian Conjugate Observation Model.}
+We use a Gaussian observation model with unknown mean and known variance, together with a Gaussian prior on the mean:
+
+\[
+x_t \mid \mu \sim \mathcal{N}(\mu,\, \sigma_x^2), 
+\qquad
+\mu \sim \mathcal{N}(\mu_0,\, \sigma_0^2)
+\]
+
+Due to conjugacy, the posterior over $\mu$ remains Gaussian as data are observed within each segment. This allows the model to maintain sufficient statistics and update them efficiently without storing the full history.
+
+The resulting posterior predictive distribution is:
+
+\[
+x_t \mid x_{\text{segment}} \sim \mathcal{N}\!\left(\mu_{\text{post}},\, \sigma_x^2 + \sigma_{\text{post}}^2\right)
+\]
+
+where the predictive variance combines observation noise and uncertainty in the estimated mean. This modular structure separating the observation model from the changepoint process is a key strength of the BOCPD framework \citep{adams2007bocpd}.
+
+\paragraph{Log-Space Implementation.}
+To ensure numerical stability, all computations are performed in log-space. The growth and reset updates become:
+
+\[
+\log p_{\text{growth}}[r] = \log p(x_t \mid r) + \log(1 - h) + \log p(r_{t-1}, x_{1:t-1})
+\]
+
+\[
+\log p_{\text{reset}} = \log p(x_t \mid \boldsymbol{\theta}_{\text{prior}}) + \log h + \mathrm{logsumexp}\!\left(\log p(r_{t-1}, x_{1:t-1})\right)
+\]
+
+Normalization is performed by subtracting the log-sum-exp of the message vector at each time step.
+
+\subsection{Hyperparameter Choices}
+
+BOCPD requires three key hyperparameters: the hazard rate $h$, the prior mean $\mu_0$, and the observation variance $\sigma_x^2$. Table~\ref{tab:hyperparameters} summarizes the values used and the rationale for each choice.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1}
+\begin{tabular}{|l|c|c|p{7cm}|}
+\hline
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Value} & \textbf{Rationale} \\
+\hline
+Hazard rate & $h$ & 
+\begin{tabular}[c]{@{}c@{}}0.05 (across-reps) \\ 0.02 (within-epoch)\end{tabular} 
+& Expected segment length of 20 or 50 steps respectively \\
+\hline
+Prior mean & $\mu_0$ & $\bar{x}$ 
+& Centered on data (weakly informative) \\
+\hline
+Prior variance & $\sigma_0^2$ & 1.0 
+& Diffuse relative to typical feature variance (0.6--1.3) \\
+\hline
+Observation variance & $\sigma_x^2$ & $\mathrm{Var}(x) + 10^{-6}$ 
+& Estimated from data; small constant ensures numerical stability \\
+\hline
+\end{tabular}
+\caption{BOCPD hyperparameter choices and their interpretation.}
+\label{tab:hyperparameters}
+\end{table}
+
+The hazard rate $h$ controls how frequently changepoints are expected a priori. With a constant hazard, segment lengths follow a geometric distribution with expected value $1/h$. 
+
+For the across-repetition analysis, we use $h = 0.05$, corresponding to an expected segment length of 20 repetitions. This reflects a conservative assumption: regime shifts are possible but not frequent within the 80 available repetitions.
+
+For the within-epoch analysis, we use $h = 0.02$, corresponding to an expected segment length of 50 time steps. Given that each epoch produces approximately 19 windowed observations, this encodes the expectation that at most one meaningful changepoint may occur within an epoch.
+
+The prior mean $\mu_0$ is set to the sample mean of each feature sequence. This choice is weakly informative and adapts naturally across participants and features without introducing bias.
+
+The observation variance $\sigma_x^2$ is estimated directly from each sequence as $\mathrm{Var}(x) + 10^{-6}$, where the small constant ensures numerical stability. This keeps the model calibrated to the scale of each feature without requiring manual tuning.
+
+Under these choices, changepoint probabilities substantially greater than $h$ indicate evidence from the data rather than the prior, making the detector sensitive to meaningful regime shifts while avoiding over-segmentation.
+
+\subsection{Analysis Pipelines}
+
+\subsubsection{Across-Repetition BOCPD}
+
+For each image condition in the test partition, we extract the 80-element sequence of log $\alpha$-band power across repetitions at channel P1 and apply BOCPD with hazard rate $h = 0.05$. Here, the sequence index is repetition number, so a detected changepoint indicates that the bandpower distribution shifted during repeated presentations of the same image, consistent with adaptation or attentional drift.
+
+We use the $\alpha$ band (8--13 Hz) because it shows high variability across conditions (Table~\ref{tab:bandpower_stats}) and is closely linked to visual and attentional processing. Channel P1 is used as a representative posterior electrode within the 17-channel array.
+
+We evaluate this analysis on 3 participants (sub-01, sub-05, sub-10) and 20 sampled conditions per participant, yielding 60 sequences in total. This subset spans the dataset quality range, allowing us to assess whether participant quality affects the across-repetition results.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__across_reps__sub-05_cond0_P1_alpha__2026-02-27.png}
+\caption{Across-repetition BOCPD example for sub-05, condition 158, using log $\alpha$-band power at channel P1. Top: feature sequence across 80 repetitions. Middle: posterior run-length distribution. Bottom: changepoint probability. The maximum changepoint probability is 0.61.}
+\label{fig:across_reps_example}
+\end{figure}
+
+\subsubsection{Within-Epoch BOCPD}
+
+For the within-epoch analysis, we apply BOCPD to two windowed feature sequences extracted from the grand-average epoch: windowed mean amplitude and windowed log variance. Both features use 10-sample windows with stride 5, producing approximately 19 time steps spanning $-200$ to $795$ ms relative to stimulus onset. The hazard rate is set to $h = 0.02$, reflecting the assumption that a 1-second epoch should contain at most one meaningful regime transition.
+
+The two features capture different aspects of nonstationarity. Windowed mean amplitude is sensitive to changes in average signal level, while windowed log variance captures changes in the spread of responses over time. As shown in the temporal dynamics analysis (Section~\ref{sec:temporal}), variance increases systematically across the epoch, making it a natural feature for detecting within-epoch regime shifts.
+
+Here, the sequence index corresponds to time within the epoch, so a detected changepoint marks a transition in the statistical regime of the EEG signal at a specific post-stimulus latency. We apply both feature pipelines across all 10 participants to estimate group-level changepoint timing. In addition, we run a per-condition analysis on 3 participants and 20 sampled conditions each to assess whether changepoint timing is consistent across individual image conditions.
+
+Figures~\ref{fig:within_epoch_mean} and~\ref{fig:within_epoch_variance} show representative outputs for the mean- and variance-based features.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__within_epoch__sub-05__2026-02-27.png}
+\caption{Within-epoch BOCPD using windowed mean amplitude for sub-05. Top: feature sequence. Middle: posterior run-length distribution. Bottom: changepoint probability across the epoch.}
+\label{fig:within_epoch_mean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__within_epoch_variance__sub-05__2026-02-27.png}
+\caption{Within-epoch BOCPD using windowed log variance for sub-05. Top: feature sequence. Middle: posterior run-length distribution. Bottom: changepoint probability across the epoch. Peak changepoint probability falls in the 295--645 ms post-stimulus window.}
+\label{fig:within_epoch_variance}
+\end{figure}
+
+\section{Results}
+
+\subsection{Synthetic Validation}
+
+Before interpreting results on real EEG data, we first validate BOCPD on synthetic sequences with known changepoints. We generate 100 sequences of length 100 with a single changepoint at $t=50$ under two shift types mean shift and variance shift across four effect sizes each. We also generate 100 stationary sequences with no changepoint to estimate the false positive rate.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Shift Type} & \textbf{Effect Size $\delta$} & \textbf{Detection Rate} & \textbf{Mean Max CP Prob} \\
+\hline
+Mean     & 0.5 & 44\% & 0.16 \\
+\hline
+Mean     & 1.0 & 67\% & 0.24 \\
+\hline
+Mean     & 1.5 & 81\% & 0.33 \\
+\hline
+Mean     & 2.0 & 91\% & 0.42 \\
+\hline
+Variance & 1.5 & 24\% & 0.37 \\
+\hline
+Variance & 2.0 & 28\% & 0.51 \\
+\hline
+Variance & 2.5 & 31\% & 0.63 \\
+\hline
+Variance & 3.0 & 33\% & 0.77 \\
+\hline
+None (stationary) & --- & 1\% & 0.14 \\
+\hline
+\end{tabular}
+\caption{BOCPD performance on synthetic sequences with known changepoints.}
+\label{tab:synthetic_validation}
+\end{table}
+
+Three results are important. First, the detector performs well on mean shifts, reaching a 91\% detection rate at $\delta=2.0$. This confirms that the Gaussian conjugate model is effective for detecting changes in the mean of a sequence.
+
+Second, variance shifts are more difficult to detect. Detection rates remain between 24\% and 33\% even at larger effect sizes. This is expected because the observation model is designed primarily for mean shifts rather than direct changes in variance.
+
+Third, the false positive rate on stationary sequences is only 1\%, with a mean maximum changepoint probability of 0.14. This provides a useful baseline for interpreting the EEG results: changepoint probabilities well above 0.14 are unlikely to arise from noise alone.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__synthetic_mean_shift__2026-02-27.png}
+\caption{Synthetic sequence with a mean shift at $t=50$ and effect size $\delta=2.0$. Top: observed sequence. Middle: posterior run-length distribution. Bottom: changepoint probability.}
+\label{fig:synthetic_validation_example}
+\end{figure}
+
+\subsection{Across-Repetition Results}
+
+We applied BOCPD to 60 sequences of log $\alpha$-band power across 80 repetitions (3 participants $\times$ 20 conditions, channel P1). The maximum changepoint probability varied across both conditions and participants, ranging from 0.044 to 0.455. Summary results are shown in Table~\ref{tab:across_reps_results}. The prior hazard was set to $h=0.05$, so changepoint probabilities substantially above 0.05 indicate evidence for a regime shift beyond the prior alone.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Participant} & \textbf{Mean Max CP Prob} & \textbf{Max Max CP Prob} & \textbf{Conditions $> 0.15$} \\
+\hline
+sub-01 & 0.124 & 0.299 (cond 177) & 5 / 20 \\
+\hline
+sub-05 & 0.110 & 0.263 (cond 186) & 3 / 20 \\
+\hline
+sub-10 & 0.105 & 0.455 (cond 182) & 2 / 20 \\
+\hline
+\end{tabular}
+\caption{Across-repetition BOCPD results for single-channel log $\alpha$-band power at P1.}
+\label{tab:across_reps_results}
+\end{table}
+
+Across the 60 sequences, 10 exceed a changepoint probability threshold of 0.15, meaning roughly 17\% of sampled conditions show meaningful evidence of nonstationarity in $\alpha$-band power across repetitions. The strongest single-channel case is sub-10 condition 182, with a maximum changepoint probability of 0.455. This suggests that for some image conditions, the neural response distribution shifts during repeated presentations, consistent with adaptation or attentional drift.
+
+To test whether single-channel noise was suppressing detection, we repeated the analysis using the mean log $\alpha$-band power across all 17 posterior channels instead of channel P1 alone. This aggregation substantially increased sensitivity: the mean maximum changepoint probability rose from 0.113 to 0.187, and the number of conditions above 0.15 increased from 10/60 to 31/60. The clearest example is sub-05 condition 158, which increased from 0.09 in the single-channel analysis to 0.61 after channel averaging. This suggests that repetition-related regime shifts are distributed across posterior.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__across_reps__sub-05_cond0_P1_alpha__2026-02-27.png}
+\caption{Single-channel BOCPD result for sub-05, condition 50, using log $\alpha$-band power at P1. Top: feature sequence across 80 repetitions. Middle: posterior run-length distribution. Bottom: changepoint probability. The maximum changepoint probability is 0.09.}
+\label{fig:across_reps_single}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__across_reps_aggregate_channels__sub-05_cond50_alpha__2026-02-27.png}
+\caption{Channel-aggregated BOCPD result for sub-05, condition 158, using mean log $\alpha$-band power across 17 posterior channels. Spatial aggregation increases the maximum changepoint probability to 0.61.}
+\label{fig:across_reps_agg}
+\end{figure}
+
+\subsection{Within-Epoch Results}
+
+We applied BOCPD to two windowed feature sequences derived from the grand-average epoch for all 10 participants: windowed mean amplitude and windowed log variance.
+
+\paragraph{Mean Amplitude.}
+The windowed mean feature did not produce changepoint probabilities that meaningfully exceeded the prior hazard for any participant. This is consistent with the structure of the signal: averaging the ERP across all 16,540 training conditions and all channels removes much of the condition-specific variability, leaving a smooth sequence with no strong regime transition. This null result is useful, as it shows that the detector does not respond to every EEG-derived feature.
+
+\paragraph{Log Variance.}
+The windowed log variance feature produced stronger evidence of changepoints. As shown in Table~\ref{tab:within_epoch_variance_results}, 8 of 10 participants had maximum changepoint probabilities above the prior hazard of $h=0.02$, with values ranging from 0.04 to 0.11.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{.9}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Participant} & \textbf{Peak CP Latency (ms)} & \textbf{Max CP Prob} \\
+\hline
+sub-01 & 395 & 0.09 \\
+\hline
+sub-02 & 445 & 0.07 \\
+\hline
+sub-03 & 345 & 0.08 \\
+\hline
+sub-04 & 645 & 0.04 \\
+\hline
+sub-05 & 295 & 0.11 \\
+\hline
+sub-06 & 345 & 0.10 \\
+\hline
+sub-07 & 395 & 0.06 \\
+\hline
+sub-08 & 495 & 0.09 \\
+\hline
+sub-09 & 395 & 0.08 \\
+\hline
+sub-10 & 295 & 0.05 \\
+\hline
+\end{tabular}
+\caption{Within-epoch BOCPD results using windowed log variance.}
+\label{tab:within_epoch_variance_results}
+\end{table}
+
+Peak changepoint latencies fall between 295 ms and 645 ms post-stimulus, with a mean of 355 ms. This places the detected transitions in the middle-to-late portion of the epoch, after the earliest visual response and during the period where variance increases most strongly. These results align with the temporal EDA, which showed a monotonic increase in variance from baseline to late post-stimulus windows.
+
+The per-condition analysis on 3 participants and 20 conditions each shows that changepoint timing is not identical across images. At the condition level, maximum changepoint probabilities range from 0.03 to 0.20, and peak latencies span from $-105$ ms to 745 ms. This suggests that while the group-level pattern is consistent, the exact timing of the variance transition depends on the specific image condition.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure/bocpd__within_epoch__sub-05__2026-02-27.png}
+\caption{Within-epoch BOCPD using windowed mean amplitude for sub-05. Changepoint probability remains close to the prior hazard throughout the epoch, consistent with a near-stationary feature sequence.}
+\label{fig:within_epoch_mean_result}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figure/bocpd__within_epoch_variance__sub-05__2026-02-27.png}
+\caption{Within-epoch BOCPD using windowed log variance for sub-05. Changepoint probability peaks at 295 ms post-stimulus, indicating a transition from an early low-variance regime to a later higher-variance regime.}
+\label{fig:within_epoch_variance_result}
+\end{figure}
+
+\section{Discussion}
+
+This study examined a simple question: when does the statistical behavior of EEG change? Using BOCPD on the THINGS-EEG dataset, we found that the answer depends strongly on the domain of analysis and on the feature used. Across repetitions, a meaningful subset of image conditions showed evidence of nonstationarity in log $\alpha$ bandpower, and this effect became substantially stronger after aggregating across posterior channels. This suggests that repeated presentations of the same image do not always produce responses drawn from a single stationary distribution. For some conditions, the neural response appears to shift over the course of 80 repetitions, which is consistent with adaptation or attentional drift. This matters for downstream modeling, since averaging across all repetitions may combine distinct response regimes for some stimuli. :contentReference[oaicite:0]{index=0}
+
+Within epochs, the contrast between features is the clearest result of the paper. Windowed mean amplitude produced little evidence of changepoints, while windowed log variance detected regime transitions in 8 of 10 participants, with peak latencies concentrated between 295 ms and 645 ms. This pattern is consistent with the EDA, which showed that variance increases systematically across the epoch whereas the mean remains comparatively smooth after averaging. In other words, the detector is not simply responding to any EEG feature. It is specifically sensitive to the evolving spread of condition-specific responses across time. This makes variance a more informative feature than mean amplitude for detecting within-epoch regime shifts in this dataset. :contentReference[oaicite:1]{index=1}
+
+The synthetic validation provides an important qualification. Under the Gaussian conjugate model, BOCPD performs well for mean shifts but is less sensitive to variance shifts. This likely means that the within-epoch variance results are conservative rather than exaggerated. A richer observation model that jointly infers both mean and variance would likely improve sensitivity to second-order changes while preserving the probabilistic structure of BOCPD. :contentReference[oaicite:2]{index=2}
+
+Several limitations remain. The across-repetition analysis was restricted to 3 participants and a limited set of sampled conditions, and the main single-channel analysis likely underestimates the extent of nonstationarity relative to spatially aggregated features. The within-epoch analysis was performed on grand-average sequences, which necessarily suppresses some condition-specific dynamics. These choices were appropriate for an initial study, but future work should extend the framework to single-trial and single-condition sequences, broader channel and band coverage, and more flexible observation models.
+
+\section{Conclusion}
+
+We applied Bayesian Online Change-Point Detection to the THINGS-EEG dataset and found evidence of regime shifts in two complementary settings. Across repetitions, log $\alpha$ bandpower was nonstationary for a substantial subset of image conditions, especially after aggregation across posterior channels. Within epochs, windowed log variance, but not windowed mean amplitude, revealed consistent changepoint structure in the 295 ms to 645 ms post-stimulus window across most participants. Synthetic validation showed that the detector is well calibrated, with a low false positive rate and strong sensitivity to mean shifts. 
+
+Taken together, these results show that BOCPD is a useful and interpretable tool for studying nonstationarity in large EEG datasets, and that feature choice is as important as the detection method itself. In this setting, variance based features provided the clearest access to regime structure in neural dynamics. The full codebase and analysis pipeline are available in our repo.
+\newpage
+\bibliographystyle{apalike}
+
+\bibliography{reference}
+
+\end{document}

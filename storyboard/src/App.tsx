@@ -15,9 +15,13 @@ import {
   ShieldCheck,
   TrendingUp,
   Search,
-  Waves
+  Waves,
+  FileText,
+  FileSignature,
+  Github
 } from 'lucide-react';
 import { StorySection } from './components/StorySection';
+import { Math } from './components/Math';
 import { EEGPlaceholder } from './components/EEGPlaceholder';
 import { BOCPDLogic } from './components/BOCPDLogic';
 import { DataTable } from './components/DataTable';
@@ -48,7 +52,7 @@ export default function App() {
 
       {/* Navigation Rail */}
       <nav className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-6 z-40">
-        {['hero', 'abstract', 'intro', 'dataset', 'features', 'methods', 'results', 'discussion'].map((id) => (
+        {['hero', 'abstract', 'intro', 'dataset', 'features', 'methods', 'results', 'discussion', 'conclusion'].map((id) => (
           <a
             key={id}
             href={`#${id}`}
@@ -90,9 +94,23 @@ export default function App() {
             Bayesian Online Change-Point Detection for EEG Regime-Shift Analysis: 
             A Study on the THINGS-EEG Dataset
           </p>
-          <p className="text-sm text-zinc-600">
+          <p className="text-sm text-zinc-600 mb-4">
             Made by Sardor Sobirov and Diego Arevalo Fernandez
           </p>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <a href="https://github.com/SatrunsDream/Bayesian-Detection-for-EEG" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm">
+              <Github className="w-4 h-4" />
+              GitHub
+            </a>
+            <a href="#" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm">
+              <FileText className="w-4 h-4" />
+              Paper
+            </a>
+            <a href="#" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm">
+              <FileSignature className="w-4 h-4" />
+              Contract
+            </a>
+          </div>
         </motion.div>
 
         <motion.div 
@@ -113,28 +131,25 @@ export default function App() {
           <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">01 / Abstract</span>
           <div className="h-px flex-1 bg-zinc-800" />
         </div>
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">The Nonstationary Mind.</h2>
+        <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">When Does the Statistical Behavior of EEG Change?</h2>
         <div className="prose prose-invert prose-emerald max-w-none">
           <p className="text-xl leading-relaxed text-zinc-400 first-letter:text-6xl first-letter:font-bold first-letter:text-emerald-500 first-letter:mr-3 first-letter:float-left">
-            Electroencephalography (EEG) signals are inherently nonstationary: their statistical properties shift across time within an epoch, 
-            across repeated presentations of the same stimulus, and across individuals. Detecting <span className="text-white font-medium italic">when</span> 
-            these regime shifts occur is fundamental to understanding neural processing dynamics, designing adaptive brain-computer interfaces (BCIs), and flagging artifacts.
+            This project asks a specific question: <span className="text-white font-medium italic">when</span> does the statistical behavior of EEG change? The method is Bayesian Online Change-Point Detection (BOCPD). We apply it to two notions of time: across repeated stimulus presentations and within a single 1-second EEG epoch after stimulus onset.
           </p>
           <p className="text-lg leading-relaxed text-zinc-400 mt-6">
-            In this work we apply <strong>Bayesian Online Change-Point Detection (BOCPD)</strong> to the THINGS-EEG dataset — a large-scale visual object recognition EEG corpus (10 participants, 16,740 unique image conditions, 17 posterior channels, 100 Hz).
-            We extract interpretable scalar features (log bandpower, windowed mean amplitude, windowed log variance), feed them into a conjugate-Gaussian BOCPD model, and evaluate the resulting changepoint posteriors against the known temporal structure of visual evoked potentials.
+            The dataset is THINGS-EEG: 10 participants, 17 posterior channels, preprocessed stimulus-locked epochs. Scalar features (log bandpower, windowed mean, windowed log variance) feed into a conjugate-Gaussian BOCPD model to identify regime transitions.
           </p>
           <p className="text-base leading-relaxed text-zinc-500 mt-4">
-            <strong className="text-zinc-400">Key findings:</strong> (a) BOCPD detects regime shifts in log bandpower across repetitions for ~17% of conditions (max CP prob = 0.455); (b) within-epoch windowed variance—but not mean—elicits changepoint probabilities above the prior for 8/10 participants (peak latency 295–645 ms); (c) synthetic validation confirms 91% detection at effect size 2.0 with 1% false-positive rate.
+            <strong className="text-zinc-400">Key findings:</strong> (a) BOCPD detects regime shifts in log bandpower across repetitions for ~17% of conditions (max CP prob 0.455); (b) within-epoch windowed variance, but not mean, raises changepoint probability above the prior for 8/10 participants (peak latency 295–645 ms); (c) synthetic validation: 91% detection at effect size 2.0, 1% false-positive rate.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
             <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
-              <h4 className="text-emerald-500 font-mono text-xs uppercase mb-4 tracking-widest">Domain 1</h4>
-              <p className="text-sm text-zinc-400">Across repetitions of the same visual stimulus (80 test-set presentations).</p>
+              <h4 className="text-emerald-500 font-mono text-xs uppercase mb-4 tracking-widest">Across Repetitions</h4>
+              <p className="text-sm text-zinc-400">80 test presentations per condition. Time = repetition index. Detecting adaptation, attentional drift, and habituation across repeated views of the same image.</p>
             </div>
             <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
-              <h4 className="text-emerald-500 font-mono text-xs uppercase mb-4 tracking-widest">Domain 2</h4>
-              <p className="text-sm text-zinc-400">Within single 1-second epochs (stimulus onset to 800 ms post-stimulus).</p>
+              <h4 className="text-emerald-500 font-mono text-xs uppercase mb-4 tracking-widest">Within Epoch</h4>
+              <p className="text-sm text-zinc-400">Stimulus onset to 800 ms post-stimulus. Time = ms within the epoch. Detecting regime transitions between early sensory (P1/N1) and later cognitive stages.</p>
             </div>
           </div>
         </div>
@@ -146,14 +161,12 @@ export default function App() {
           <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">02 / Introduction</span>
           <div className="h-px flex-1 bg-zinc-800" />
         </div>
-        <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">The Nonstationarity Problem</h2>
+        <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">From Prediction to Regime Structure</h2>
         <p className="text-zinc-400 leading-relaxed mb-6">
-          EEG recordings are nonstationary at multiple timescales. Within a single trial, the neural response 
-          evolves from a pre-stimulus baseline through early sensory processing (P1/N1 components at ~100–170 ms) into later cognitive stages (P300, N400, etc.).
-          Across repeated presentations of the same stimulus, habituation, adaptation, attentional fluctuations, and electrode drift can all produce slow changes in the response distribution.
+          Neural signals are inherently nonstationary. Within a single stimulus-locked epoch, the brain's response evolves over time. Across repeated trials, neural activity may shift due to adaptation, attention, or fatigue. Prior work on THINGS-EEG has focused on predictive encoding; we instead ask when the data-generating process changes.
         </p>
         <p className="text-zinc-400 leading-relaxed mb-8">
-          These nonstationarities are not merely nuisances. They carry information about the underlying neural computation: a shift in the variance regime within an epoch may mark the boundary between feedforward sensory processing and recurrent top-down modulation.
+          Change-point detection identifies boundaries between segments drawn from distinct distributions. BOCPD maintains a posterior over the run length (time since the last changepoint) and updates it sequentially, well-suited for temporally evolving signals like EEG.
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8">
           <div className="space-y-4">
@@ -179,7 +192,7 @@ export default function App() {
             Variance Dynamics
           </h4>
           <p className="text-xs text-zinc-400 leading-relaxed">
-            Variance increases monotonically from baseline through the post-stimulus period: baseline ≈ 0.05, early 0–200 ms ≈ 0.08, late 200–800 ms ≈ 0.12. This structure is consistent with stimulus-evoked activity superimposed on ongoing fluctuations and motivates the use of windowed log variance for within-epoch BOCPD.
+            A key question: does the variance change over the epoch? If it increases systematically, that suggests a structured transition BOCPD can detect. Mean-based features average out condition-specific activity; variance-based features capture how responses spread over time. Baseline &lt; early &lt; late (late ≈ 2× baseline). Variance motivates within-epoch changepoint detection.
           </p>
         </div>
         <div className="mt-12 w-screen relative left-1/2 -translate-x-1/2">
@@ -211,16 +224,16 @@ export default function App() {
         <div className="space-y-8 mb-12">
           <div>
             <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-              The THINGS-EEG dataset comes from an experiment where people viewed images of objects in a rapid visual presentation setup. Each image was shown for 100 ms, and new images arrived every 200 ms. The public release already excludes target trials and gives us preprocessed EEG, not raw continuous recordings.
+              THINGS-EEG records EEG while participants view natural object images in rapid serial visual presentation (RSVP): 100 ms per image, 200 ms stimulus onset asynchrony. An orthogonal target detection task maintained attention; target trials were excluded. Preprocessed data includes: stimulus-locked epochs, baseline correction (-200 to 0 ms), downsampling to 100 Hz, and multivariate noise normalization (MVNN) per session.
             </p>
             <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-              Each participant has two partitions: a training partition and a test partition. The training partition has 16,540 unique image conditions, each repeated 4 times. The test partition has 200 unique image conditions, each repeated 80 times. Both partitions contain the same 17 posterior electrodes and 100 timepoints per epoch, sampled at 100 Hz, covering roughly -200 ms to +795 ms around stimulus onset.
+              Per participant: <strong className="text-zinc-300">Train</strong> 16,540 conditions × 4 reps; <strong className="text-zinc-300">test</strong> 200 conditions × 80 reps. Both: 17 posterior channels, 100 timepoints (100 Hz), epoch [-200, +795] ms.
             </p>
             <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-              The most important way to imagine the data is as a 4D NumPy array: <span className="font-mono text-emerald-400">(conditions, repetitions, channels, timepoints)</span>. For training, the shape is <span className="font-mono text-white">(16540, 4, 17, 100)</span>; for test, <span className="font-mono text-white">(200, 80, 17, 100)</span>. One element <span className="font-mono">X[c, r, j, t]</span> is: for condition c, repetition r, channel j, at timepoint t, what was the EEG value?
+              Shape <span className="font-mono text-emerald-400">(conditions × repetitions × channels × timepoints)</span>: train <span className="font-mono text-white">(16540, 4, 17, 100)</span>, test <span className="font-mono text-white">(200, 80, 17, 100)</span>. Entry X[c,r,j,t] = EEG amplitude for condition c, repetition r, channel j, at timepoint t.
             </p>
-            <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-              A good way to mentally picture it: pick one participant. Along the first axis, you move from one image to another; along the second, across repeated presentations of that same image; along the third, across scalp channels; along the fourth, through time inside the 1-second trial. Every “cell” in the first two axes contains a 17×100 little matrix: 17 channels stacked over 100 time samples.
+            <p className="text-zinc-500 text-xs leading-relaxed mb-4">
+              Each axis: <strong className="text-zinc-400">conditions</strong> = image identity; <strong className="text-zinc-400">repetitions</strong> = repeated trials of same image; <strong className="text-zinc-400">channels</strong> = 17 posterior electrodes; <strong className="text-zinc-400">timepoints</strong> = time within the epoch. Each (c,r) pair is a 17×100 matrix: the spatial-temporal neural response to one presentation. Channels: Pz, P3, P7, O1, Oz, O2, P4, P8, P1, P5, PO7, PO3, POz, PO4, PO8, P6, P2.
             </p>
           </div>
           <DataTensorVis />
@@ -285,7 +298,7 @@ export default function App() {
             </div>
             <div>
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Drift across repetitions</p>
-              <p>Mean amplitude across 8 bins of 10 test repetitions shows flat or mildly fluctuating trajectories — no strong systematic drift.</p>
+              <p>Mean amplitude across 8 bins of 10 test repetitions shows flat or mildly fluctuating trajectories; no strong systematic drift.</p>
             </div>
             <div>
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Spectral bandpower</p>
@@ -309,11 +322,11 @@ export default function App() {
         <h2 className="text-4xl font-bold text-white tracking-tight mb-8">EDA to Features</h2>
 
         <p className="text-zinc-400 text-sm leading-relaxed mb-8">
-          The EDA was not just “let’s make some plots.” It had a very practical purpose: figure out whether the data quality is acceptable, what kinds of nonstationarity are present, and what features make sense for BOCPD.
+          EDA guided three design choices: data quality (mostly acceptable; sub-01 and sub-04 flagged), structure (variance changes over time; mean drift across reps is mild), and feature suitability (log bandpower ~Gaussian; windowed summaries for high autocorrelation).
         </p>
 
         <div className="space-y-8 mb-12">
-          <h4 className="text-lg font-bold text-white">EDA conceptual purpose</h4>
+          <h4 className="text-lg font-bold text-white">EDA insights</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Value ranges</p>
@@ -325,7 +338,7 @@ export default function App() {
             </div>
             <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Drift across repetitions</p>
-              <p className="text-xs text-zinc-400 leading-relaxed">Mean amplitude across repetition bins was mostly flat — no gross monotonic drift. If BOCPD finds changepoints, it’s not trivial drift.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Mean amplitude across repetition bins was mostly flat; no gross monotonic drift. If BOCPD finds changepoints, it’s not trivial drift.</p>
             </div>
             <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
               <p className="font-mono text-xs uppercase tracking-widest text-emerald-500 mb-2">Spectral bandpower</p>
@@ -341,28 +354,44 @@ export default function App() {
             </div>
           </div>
           <p className="text-zinc-400 text-sm leading-relaxed">
-            The EDA answered three design questions. <strong className="text-zinc-300">First</strong>, is the data clean enough? Mostly yes, with some flagged participants. <strong className="text-zinc-300">Second</strong>, what structure exists? Variance changes over time, but mean drift across repetitions is not obvious. <strong className="text-zinc-300">Third</strong>, what features are statistically suitable? Log bandpower looks close to Gaussian; windowed summaries make sense because raw samples are too autocorrelated.
+            EDA confirmed: data quality acceptable (some flagged participants); variance ramps over time; mean drift mild; log bandpower ~Gaussian; raw samples too autocorrelated, so windowed summaries are required.
           </p>
 
-          <h4 className="text-lg font-bold text-white mt-12">Feature extraction in detail</h4>
+          <h4 className="text-lg font-bold text-white mt-12">Features in detail</h4>
           <div className="space-y-6">
             <div>
               <p className="font-mono text-sm text-emerald-500 mb-2">Log bandpower</p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                Used for across-repetition analysis. Welch’s method for PSD, then integrate within each canonical band. If S(f) is the PSD, bandpower is P_b = integral of S(f) over band, then apply log: ℓ_b = log P_b. The log compresses the right tail and makes the distribution more symmetric — that’s why we checked Gaussianity of log bandpower, not raw power.
+                Used for across-repetition analysis. Welch’s method for PSD, then integrate within each canonical band. If S(f) is the PSD, bandpower integrates S(f) over each band; log: ℓ_b = log P_b. The log compresses the right tail and makes the distribution more symmetric; that’s why we checked Gaussianity of log bandpower, not raw power.
+              </p>
+              <div className="p-3 rounded-xl bg-black/40 border border-emerald-500/20 mb-2 overflow-x-auto">
+                <Math latex="P_b = \int_{f_{b,\mathrm{low}}}^{f_{b,\mathrm{high}}} S(f)\, df,\qquad \ell_b = \log P_b" display />
+              </div>
+              <p className="text-zinc-400 text-sm leading-relaxed mb-2">
+                The log compresses the right tail and produces a more symmetric, approximately Gaussian distribution.
               </p>
               <p className="text-xs text-zinc-500 font-mono">After extraction: train (16540, 4, 17, 5), test (200, 80, 17, 5). Last axis = 5 bands.</p>
             </div>
             <div>
               <p className="font-mono text-sm text-emerald-500 mb-2">Windowed mean amplitude</p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                For within-epoch analysis. Grand-average time series with 10-sample window, stride 5. At 100 Hz: 100 ms windows, 50 ms stride. Window mean = (1/W) sum of x_i over window. Produces ~19 windows from the 100-point epoch — coarse summary of local average amplitude over time.
+                For within-epoch analysis. Grand-average time series with 10-sample window, stride 5. At 100 Hz: 100 ms windows, 50 ms stride. For each window <em>k</em>:
               </p>
+              <div className="p-3 rounded-xl bg-black/40 border border-emerald-500/20 mb-2 overflow-x-auto">
+                <Math latex="\bar{x}_k = \frac{1}{W} \sum_{i=kS}^{kS+W-1} x_i" display />
+              </div>
+              <p className="text-zinc-400 text-sm leading-relaxed">Produces ~19 windows from the 100-point epoch.</p>
             </div>
             <div>
               <p className="font-mono text-sm text-emerald-500 mb-2">Windowed log variance</p>
+              <p className="text-zinc-400 text-sm leading-relaxed mb-2">
+                Same windowing, but compute variance inside each window and log it:
+              </p>
+              <div className="p-3 rounded-xl bg-black/40 border border-emerald-500/20 mb-2 overflow-x-auto">
+                <Math latex="v_k = \log\big(\mathrm{Var}(\{x_i : i \in [kS,\, kS+W-1]\}) + \epsilon\big)" display />
+              </div>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                Same windowing, but compute variance inside each window and log it: v_k = Var of x_i in window k, then ℓ_k = log(v_k + ε). Captures temporal variability within the epoch. EDA showed baseline &lt; early &lt; late variance — strong motivation before BOCPD.
+                EDA showed baseline &lt; early &lt; late variance, which strongly motivates this feature for BOCPD.
               </p>
             </div>
           </div>
@@ -378,7 +407,7 @@ export default function App() {
               <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
                 <h4 className="text-white font-bold mb-2">Temporal variance: baseline &lt; early &lt; late</h4>
                 <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-                  Variance over time within the epoch is consistent: baseline lowest, early post-stimulus higher, late highest — late roughly 2× baseline. This temporal change in second-order structure motivates variance as a changepoint feature.
+                  Variance over time within the epoch is consistent: baseline lowest, early post-stimulus higher, late highest (late roughly 2× baseline). This temporal change in second-order structure motivates variance as a changepoint feature.
                 </p>
                 <InteractiveChart
                   type="bar"
@@ -429,8 +458,8 @@ export default function App() {
             <Layers className="w-8 h-8 text-emerald-500" />
             <h3 className="text-lg font-bold text-white">Conjugate Model</h3>
             <p className="text-sm text-zinc-500 leading-relaxed">
-              We use a <strong>Gaussian observation model</strong> with known variance and unknown mean, coupled with a Gaussian prior on the mean.
-              Conjugacy ensures that after observing data within a segment, the posterior on the mean remains Gaussian, allowing for efficient exact inference.
+              We use a <strong>Gaussian observation model</strong> with unknown mean and known variance, together with a Gaussian prior on the mean.
+              Conjugacy ensures the posterior over the mean remains Gaussian as data are observed within each segment, enabling efficient exact inference without storing full history.
             </p>
           </div>
         </div>
@@ -439,8 +468,8 @@ export default function App() {
           <h3 className="text-2xl font-bold text-white mb-8">BOCPD Recursion</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="space-y-6">
-              <div className="p-4 rounded-xl bg-black/40 font-mono text-xs text-emerald-400 border border-emerald-500/20">
-                p(r_t | x_1:t) = p(r_t, x_1:t) / Σ p(r_t, x_1:t)
+              <div className="p-4 rounded-xl bg-black/40 border border-emerald-500/20 overflow-x-auto">
+                <Math latex="p(r_t \mid x_{1:t}) = \frac{p(r_t, x_{1:t})}{\sum_{r_t} p(r_t, x_{1:t})}" display />
               </div>
               <p className="text-sm text-zinc-400 leading-relaxed">
                 The central quantity is the filtering posterior over run length. At each time step, 
@@ -471,7 +500,7 @@ export default function App() {
       <StorySection id="results" className="bg-zinc-950/30">
         <div className="flex items-center gap-4 mb-12">
           <div className="h-px flex-1 bg-zinc-800" />
-          <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">05 / Results</span>
+          <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">06 / Results</span>
         </div>
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-12 tracking-tight">Evidence of Shift.</h2>
 
@@ -480,10 +509,10 @@ export default function App() {
             <div>
               <h3 className="text-2xl font-bold text-white mb-4">Across-Repetition Analysis</h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                <span className="text-emerald-400 font-medium">Single channel (P1):</span> BOCPD on 60 sequences (3 participants × 20 conditions, alpha band, 80 reps each). Max CP prob ranged 0.044–0.455. 10/60 conditions (17%) show max CP &gt; 0.15.
+                <span className="text-emerald-400 font-medium">Single channel (P1):</span> We use the alpha band (8–13 Hz) for high variability and link to visual processing; channel P1 as a representative posterior electrode. BOCPD on 60 sequences (3 participants × 20 conditions, alpha band, 80 reps each). Max CP prob ranged 0.044–0.455. 10/60 conditions (17%) show max CP &gt; 0.15.
               </p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-                We then aggregated log bandpower over all 17 channels (mean per rep) and re-ran BOCPD — channel aggregation substantially improves detection.
+                We then aggregated log bandpower over all 17 channels (mean per rep) and re-ran BOCPD; channel aggregation substantially improves detection.
               </p>
               <DataTable 
                 title="Across-Repetition Summary (Single Channel)" 
@@ -495,7 +524,7 @@ export default function App() {
             <div className="space-y-8">
               <InteractiveChart 
                 type="bar"
-                title="Single Channel (P1) — Top Conditions"
+                title="Single Channel (P1) Top Conditions"
                 data={data.ACROSS_REPS_SUMMARY.slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
                 xKey="name"
                 yKey="max_cp_prob"
@@ -505,7 +534,7 @@ export default function App() {
               <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
                 <h4 className="text-white font-bold mb-2">Interpretation</h4>
                 <p className="text-xs text-zinc-400 leading-relaxed italic">
-                  Alpha bandpower is not uniformly stationary across repetitions. sub-10 cond 182 = 0.455 (strongest single-channel). Aggregating over channels exposes more regime shifts.
+                  Alpha bandpower is not uniformly stationary across repetitions. Aggregating over channels exposes regime shifts that a single electrode may miss.
                 </p>
               </div>
             </div>
@@ -558,7 +587,7 @@ export default function App() {
             <div className="mt-6 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
               <h4 className="text-white font-bold mb-2">Key finding</h4>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                sub-05 cond 158: 0.093 (single) → 0.610 (aggregate) — a sixfold increase. sub-10 cond 182 was already strong with P1 alone (0.455); aggregate 0.389. Use channel-aggregated features when a single optimal channel is unknown.
+                sub-05 cond 158: 0.093 (single channel) → 0.610 (aggregate)- sixfold increase. Recommendation: use channel-aggregated features when the optimal single channel is unknown.
               </p>
             </div>
             <div className="mt-6">
@@ -575,7 +604,7 @@ export default function App() {
             <div>
               <h3 className="text-2xl font-bold text-white mb-4">Within-Epoch Variance</h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                <strong className="text-emerald-400">Windowed mean (negative result):</strong> BOCPD on grand-average windowed mean produced no detection—max CP prob equals hazard for all 10 participants. Averaging smooths away condition-specific ERP structure.
+                <strong className="text-emerald-400">Windowed mean (negative result):</strong> BOCPD on grand-average windowed mean produced no detection; max CP prob equals hazard for all 10 participants. Averaging smooths away condition-specific ERP structure.
               </p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-4">
                 <strong className="text-emerald-400">Windowed variance:</strong> BOCPD on windowed log variance (19 windows, h = 0.02) produced elevated CP probabilities for 8/10 participants. Peak latencies post-stimulus (295–645 ms). sub-05 max CP prob 0.108 (5.4× hazard); sub-06/sub-10 weakest (1.8–1.9×).
@@ -599,27 +628,9 @@ export default function App() {
               <h3 className="text-xl font-bold text-white mb-6">Synthetic Validation</h3>
 
               <div className="mb-8 p-6 rounded-xl bg-zinc-900/50 border border-zinc-800 space-y-4">
-                <h4 className="text-sm font-bold text-white">How it was conducted</h4>
+                <h4 className="text-sm font-bold text-white">Procedure</h4>
                 <p className="text-sm text-zinc-400 leading-relaxed">
-                  To establish the operating characteristics of BOCPD, we generated synthetic sequences with known changepoints. No real EEG was used; all data was simulated.
-                </p>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">Data:</strong> For each condition, 100 sequences of length 100 were generated, each with a single changepoint at t = 50 (midpoint). Sequence length matches the ~19 windowed features or the 80 test repetitions in our real analyses.
-                </p>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">Mean shift:</strong> Pre-change samples drawn from N(0, 1); post-change from N(δ, 1). Effect sizes δ = 0.5, 1.0, 1.5, 2.0. The mean jumps by δ units at t = 50.
-                </p>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">Variance shift:</strong> Pre-change N(0, 1); post-change N(0, δ²). Effect sizes δ = 1.5, 2.0, 2.5, 3.0. The variance increases by a factor of δ² at t = 50; mean stays zero.
-                </p>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">No-changepoint (stationary):</strong> 100 sequences from N(0, 1) throughout. Used to measure false positive rate.
-                </p>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">BOCPD:</strong> Same Gaussian conjugate model and hazard rate as in the main analyses. For each sequence, we ran BOCPD and recorded the run-length posterior and changepoint probability at each step.
-                </p>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">Detection criterion:</strong> A changepoint was counted as detected if the max changepoint probability exceeded 0.5 and occurred within ±5 steps of the true changepoint (t = 50). False positive rate = fraction of stationary sequences with max CP prob &gt; 0.5.
+                  100 sequences of length 100 each, changepoint at t = 50. <strong className="text-zinc-300">Mean shift:</strong> pre N(0,1), post N(δ,1); δ ∈ {0.5, 1.0, 1.5, 2.0}. <strong className="text-zinc-300">Variance shift:</strong> pre N(0,1), post N(0,δ²); δ ∈ {1.5, 2.0, 2.5, 3.0}. <strong className="text-zinc-300">No-CP:</strong> N(0,1) throughout for FPR. BOCPD: same model as main analyses. Detection: max CP prob &gt; 0.5 within ±5 of true CP.
                 </p>
               </div>
 
@@ -637,10 +648,10 @@ export default function App() {
                 </div>
                 <div className="space-y-4">
                   <p className="text-sm text-zinc-500 leading-relaxed">
-                    Mean shift: detection rate scales with effect size, reaching 91% at δ = 2.0; mean latency near zero. Variance shifts: 24 to 33% rate; mean max CP prob 0.37 to 0.77; delayed detection (+22 to +27 steps).
+                    <strong className="text-zinc-400">Three results matter.</strong> First: the detector performs well on mean shifts, reaching 91% at δ = 2.0, with mean latency near zero. Second: variance shifts are harder to detect (24 to 33% rate; mean max CP prob 0.37 to 0.77; delayed detection +22 to +27 steps) because the observation model is tuned for mean shifts. Third: FPR on stationary sequences is only 1%, mean max CP prob 0.14; changepoint probabilities well above 0.14 are unlikely to arise from noise alone.
                   </p>
                   <p className="text-sm text-zinc-500 leading-relaxed">
-                    Stationary: mean max CP prob = 0.142, FPR 1%. Real EEG (0.04 to 0.11) &lt; synthetic (0.37 to 0.77) indicates gradual within-epoch transition.
+                    Real EEG (0.04 to 0.11) lies below synthetic variance-shift range (0.37 to 0.77), indicating a gradual within-epoch transition rather than an abrupt step.
                   </p>
                   <div className="p-4 rounded-xl bg-black/40 border border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-widest leading-relaxed space-y-2">
                     <p>Mean: 91% at δ=2.0; FPR 1%</p>
@@ -659,31 +670,34 @@ export default function App() {
       </StorySection>
 
       {/* Discussion */}
-      <StorySection id="discussion">
+      <StorySection id="discussion" className="bg-zinc-950/30">
         <div className="flex items-center gap-4 mb-12">
-          <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">06 / Discussion</span>
+          <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">07 / Discussion</span>
           <div className="h-px flex-1 bg-zinc-800" />
         </div>
-        <h2 className="text-4xl font-bold text-white mb-8">Why Variance Succeeds.</h2>
+        <h2 className="text-4xl font-bold text-white mb-8">When Does EEG Change?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="space-y-6">
             <p className="text-zinc-400 leading-relaxed">
-              <strong className="text-white">Windowed mean</strong> after grand-averaging is nearly flat because averaging across 16,540 conditions with diverse ERP waveforms cancels out condition-specific temporal structure. The result is a smooth, near-zero trace that BOCPD (correctly) identifies as stationary.
+              This study examined a simple question: when does the statistical behavior of EEG change? Using BOCPD on the THINGS-EEG dataset, we found that the answer depends strongly on the domain of analysis and on the feature used. Across repetitions, a meaningful subset of image conditions showed evidence of nonstationarity in log alpha bandpower, and this effect became substantially stronger after aggregating across posterior channels. This suggests that repeated presentations of the same image do not always produce responses drawn from a single stationary distribution. For some conditions, the neural response appears to shift over the course of 80 repetitions, which is consistent with adaptation or attentional drift. This matters for downstream modeling, since averaging across all repetitions may combine distinct response regimes for some stimuli.
             </p>
             <p className="text-zinc-400 leading-relaxed">
-              <strong className="text-white">Windowed variance</strong> is a second-order statistic reflecting the dispersion of single-trial activity at each timepoint. Even after averaging, the monotonic baseline-to-late increase in variance is preserved—post-stimulus activity is more variable than baseline. This gradual regime shift is detectable by BOCPD (max CP prob up to 0.108) because the shift is genuine, albeit smooth.
+              Within epochs, the contrast between features is the clearest result of the paper. Windowed mean amplitude produced little evidence of changepoints, while windowed log variance detected regime transitions in 8 of 10 participants, with peak latencies concentrated between 295 ms and 645 ms. This pattern is consistent with the EDA, which showed that variance increases systematically across the epoch whereas the mean remains comparatively smooth after averaging. In other words, the detector is not simply responding to any EEG feature. It is specifically sensitive to the evolving spread of condition-specific responses across time. This makes variance a more informative feature than mean amplitude for detecting within-epoch regime shifts in this dataset.
+            </p>
+            <p className="text-zinc-400 leading-relaxed">
+              The synthetic validation provides an important qualification. Under the Gaussian conjugate model, BOCPD performs well for mean shifts but is less sensitive to variance shifts. This likely means that the within-epoch variance results are conservative rather than exaggerated. A richer observation model that jointly infers both mean and variance would likely improve sensitivity to second-order changes while preserving the probabilistic structure of BOCPD.
             </p>
             <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
               <h4 className="text-white font-bold mb-2">Key Insight</h4>
               <p className="text-sm text-zinc-400 italic">
-                The choice of feature matters as much as the choice of detection algorithm. Windowed variance captures systematic second-order changes that windowed mean, after grand-averaging, cannot.
+                Feature choice is as important as the detection method. Variance-based features provide the clearest access to regime structure in neural dynamics.
               </p>
             </div>
           </div>
           <div className="space-y-8">
             <h4 className="text-sm font-mono uppercase tracking-widest text-zinc-500">Limitations</h4>
             <div className="space-y-3 text-sm text-zinc-400 leading-relaxed">
-              <p>Our Gaussian model assumes known variance—optimal for mean shifts but suboptimal for variance shifts. A Normal-Inverse-Gamma model would jointly infer mean and variance. Grand-averaging collapses condition-specific structure; single-trial analysis would yield richer dynamics. Single channel/band; multi-channel aggregation could improve sensitivity.</p>
+              <p>Several limitations remain. The across-repetition analysis was restricted to 3 participants and a limited set of sampled conditions, and the main single-channel analysis likely underestimates the extent of nonstationarity relative to spatially aggregated features. The within-epoch analysis was performed on grand-average sequences, which necessarily suppresses some condition-specific dynamics. These choices were appropriate for an initial study, but future work should extend the framework to single-trial and single-condition sequences, broader channel and band coverage, and more flexible observation models.</p>
             </div>
             <h4 className="text-sm font-mono uppercase tracking-widest text-zinc-500">Future Directions</h4>
             <div className="space-y-4">
@@ -703,14 +717,46 @@ export default function App() {
         </div>
       </StorySection>
 
+      {/* Conclusion */}
+      <StorySection id="conclusion">
+        <div className="flex items-center gap-4 mb-12">
+          <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-500">08 / Conclusion</span>
+          <div className="h-px flex-1 bg-zinc-800" />
+        </div>
+        <h2 className="text-4xl font-bold text-white mb-8">Summary</h2>
+        <div className="space-y-6">
+          <p className="text-zinc-400 leading-relaxed text-lg">
+            We applied Bayesian Online Change-Point Detection to the THINGS-EEG dataset and found evidence of regime shifts in two complementary settings. Across repetitions, log alpha bandpower was nonstationary for a substantial subset of image conditions, especially after aggregation across posterior channels. Within epochs, windowed log variance, but not windowed mean amplitude, revealed consistent changepoint structure in the 295 ms to 645 ms post-stimulus window across most participants. Synthetic validation showed that the detector is well calibrated, with a low false positive rate and strong sensitivity to mean shifts.
+          </p>
+          <p className="text-zinc-400 leading-relaxed text-lg">
+            Taken together, these results show that BOCPD is a useful and interpretable tool for studying nonstationarity in large EEG datasets, and that feature choice is as important as the detection method itself. In this setting, variance-based features provided the clearest access to regime structure in neural dynamics. The full codebase and analysis pipeline are available in our repo.
+          </p>
+          <div className="flex justify-center pt-8">
+            <a href="https://github.com/SatrunsDream/Bayesian-Detection-for-EEG" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-800/80 border border-zinc-700 text-zinc-300 hover:text-emerald-500 hover:border-emerald-500/50 transition-colors">
+              <Github className="w-5 h-5" />
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </StorySection>
+
       {/* Footer */}
       <footer className="py-24 border-t border-zinc-900 bg-black">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <Brain className="w-8 h-8 text-zinc-800 mx-auto mb-8" />
-          <h2 className="text-2xl font-bold text-white mb-4">Neural Shifts</h2>
-          <p className="text-zinc-600 text-sm mb-12">
-            A research project on Bayesian Online Change-Point Detection for EEG.
+          <h2 className="text-2xl font-bold text-white mb-4">Bayesian Neural Shifts</h2>
+          <p className="text-zinc-600 text-sm mb-6">
+            Bayesian Online Change-Point Detection for EEG. When does the statistical behavior of EEG change?
           </p>
+          <div className="flex justify-center gap-6 mb-8 text-sm">
+            <a href="https://bayesian-detection-for-eeg.vercel.app" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:text-emerald-400 transition-colors">
+              Website
+            </a>
+            <a href="https://github.com/SatrunsDream/Bayesian-Detection-for-EEG" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-emerald-500 hover:text-emerald-400 transition-colors">
+              <Github className="w-4 h-4" />
+              Code
+            </a>
+          </div>
           <div className="flex justify-center gap-8 text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-mono">
             <span>THINGS-EEG Dataset</span>
             <span>BOCPD Framework</span>

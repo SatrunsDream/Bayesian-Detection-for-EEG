@@ -15,3 +15,9 @@
 .bg-radial-gradient {
   background-image: radial-gradient(var(--tw-gradient-stops));
 }
+
+/* KaTeX: light text on dark backgrounds */
+.katex,
+.katex * {
+  color: #a7f3d0 !important; /* emerald-200 */
+}
