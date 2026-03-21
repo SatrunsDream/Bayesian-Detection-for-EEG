@@ -32,6 +32,9 @@ import { DataTensorVis } from './components/DataTensorVis';
 import { FeatureTensorSchematic } from './components/FeatureTensorSchematic';
 import { LogBandpowerChart } from './components/LogBandpowerChart';
 import { PdfViewerModal } from './components/PdfViewerModal';
+import { WithinEpochComparisonChart } from './components/WithinEpochComparisonChart';
+import { AcrossRepsComparisonChart } from './components/AcrossRepsComparisonChart';
+import { AcrossRepsSection } from './components/AcrossRepsSection';
 import { cn } from './lib/utils';
 import * as data from './data/researchData';
 
@@ -561,122 +564,52 @@ export default function App() {
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-12 tracking-tight">Evidence of Shift.</h2>
 
         <div className="space-y-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-4">Across-Repetition Analysis</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                <span className="text-emerald-400 font-medium">Single channel (P1):</span> We use the alpha band (8–13 Hz) for high variability and link to visual processing; channel P1 as a representative posterior electrode. BOCPD on 60 sequences (3 participants × 20 conditions, alpha band, 80 reps each). Max CP prob ranged 0.044–0.455. 10/60 conditions (17%) show max CP &gt; 0.15.
-              </p>
-              <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-                We then aggregated log bandpower over all 17 channels (mean per rep) and re-ran BOCPD; channel aggregation substantially improves detection.
-              </p>
-              <DataTable 
-                title="Across-Repetition Summary (Single Channel)" 
-                data={data.ACROSS_REPS_SUMMARY} 
-                headers={['participant', 'condition', 'max_cp_prob']} 
-                description="Top conditions, P1 only."
-              />
-            </div>
-            <div className="space-y-8">
-              <InteractiveChart 
-                type="bar"
-                title="Single Channel (P1) Top Conditions"
-                data={data.ACROSS_REPS_SUMMARY.slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
-                xKey="name"
-                yKey="max_cp_prob"
-                referenceLine={0.05}
-                color="#f59e0b"
-              />
-              <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                <h4 className="text-white font-bold mb-2">Interpretation</h4>
-                <p className="text-xs text-zinc-400 leading-relaxed italic">
-                  Alpha bandpower is not uniformly stationary across repetitions. Aggregating over channels exposes regime shifts that a single electrode may miss.
-                </p>
-              </div>
-            </div>
-          </div>
+          <AcrossRepsSection data={data} />
 
           <div className="pt-16 border-t border-zinc-800">
-            <h3 className="text-2xl font-bold text-white mb-6">Single Channel vs Channel-Aggregated</h3>
-            <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-              Averaging log bandpower over 17 channels reduces channel-specific noise and exposes regime shifts that a single electrode may miss. Same design (sub-01, sub-05, sub-10 × 20 conditions, alpha band).
+            <h3 className="text-2xl font-bold text-white mb-6">Within-Epoch Variance</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-2">
+              <strong className="text-emerald-400">Windowed mean (negative result):</strong> BOCPD on grand-average windowed mean produced no detection; max CP prob equals hazard for all 10 participants. Averaging smooths away condition-specific ERP structure.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-2">Mean max CP prob</div>
-                <div className="text-2xl font-bold text-white">0.113 <span className="text-zinc-500 font-normal">→</span> <span className="text-emerald-500">0.187</span></div>
-                <div className="text-xs text-emerald-500 mt-1">+65%</div>
-              </div>
-              <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-2">Conditions &gt; 0.15</div>
-                <div className="text-2xl font-bold text-white">10 <span className="text-zinc-500 font-normal">→</span> <span className="text-emerald-500">31</span></div>
-                <div className="text-xs text-emerald-500 mt-1">3× more</div>
-              </div>
-              <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-2">Max max CP prob</div>
-                <div className="text-2xl font-bold text-white">0.455 <span className="text-zinc-500 font-normal">→</span> <span className="text-emerald-500">0.610</span></div>
-                <div className="text-xs text-emerald-500 mt-1">sub-05 cond 158</div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <InteractiveChart 
-                type="bar"
-                title="Single Channel (P1)"
-                data={[...data.ACROSS_REPS_SUMMARY].sort((a, b) => b.max_cp_prob - a.max_cp_prob).slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
-                xKey="name"
-                yKey="max_cp_prob"
-                referenceLine={0.15}
-                color="#f59e0b"
-                height={280}
-              />
-              <InteractiveChart 
-                type="bar"
-                title="Channel-Aggregated (mean over 17 ch)"
-                data={[...(data.ACROSS_REPS_AGGREGATE_SUMMARY || [])].sort((a, b) => b.max_cp_prob - a.max_cp_prob).slice(0, 8).map(d => ({ ...d, name: `${d.participant} ${d.condition}` }))}
-                xKey="name"
-                yKey="max_cp_prob"
-                referenceLine={0.15}
-                color="#10b981"
-                height={280}
-              />
-            </div>
-            <div className="mt-6 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-              <h4 className="text-white font-bold mb-2">Key finding</h4>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                sub-05 cond 158: 0.093 (single channel) → 0.610 (aggregate)- sixfold increase. Recommendation: use channel-aggregated features when the optimal single channel is unknown.
-              </p>
-            </div>
-            <div className="mt-6">
-              <DataTable 
-                title="Channel-Aggregated Summary" 
-                data={data.ACROSS_REPS_AGGREGATE_SUMMARY || []} 
-                headers={['participant', 'condition', 'max_cp_prob']} 
-                description="BOCPD on mean log bandpower over 17 channels."
-              />
-            </div>
-          </div>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-8">
+              <strong className="text-emerald-400">Windowed variance:</strong> BOCPD on windowed log variance (19 windows, h = 0.02) produced elevated CP probabilities for 8/10 participants. Peak latencies post-stimulus (295–645 ms). sub-05 max CP prob 0.108 (5.4× hazard); sub-06/sub-10 weakest (1.8–1.9×).
+            </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start pt-16 border-t border-zinc-800">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-4">Within-Epoch Variance</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed mb-2">
-                <strong className="text-emerald-400">Windowed mean (negative result):</strong> BOCPD on grand-average windowed mean produced no detection; max CP prob equals hazard for all 10 participants. Averaging smooths away condition-specific ERP structure.
-              </p>
-              <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-                <strong className="text-emerald-400">Windowed variance:</strong> BOCPD on windowed log variance (19 windows, h = 0.02) produced elevated CP probabilities for 8/10 participants. Peak latencies post-stimulus (295–645 ms). sub-05 max CP prob 0.108 (5.4× hazard); sub-06/sub-10 weakest (1.8–1.9×).
-              </p>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                Mode of peak latency = 395 ms (3 participants); mean = 355 ms across all 10. Per-condition variance analysis (60 conditions) yielded max CP prob up to 0.195 (sub-02, cond 7251 at 295 ms). Peak latencies show bimodal structure (early 45–295 ms and late 495–745 ms), suggesting image category may modulate when the variance regime shift occurs.
-              </p>
+            <WithinEpochComparisonChart
+              meanData={data.BOCPD_WITHIN_EPOCH_MEAN}
+              varianceData={data.WITHIN_EPOCH_VARIANCE}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
+              <div>
+                <InteractiveChart
+                  type="bar"
+                  title="Peak Changepoint Latency (ms)"
+                  data={data.WITHIN_EPOCH_VARIANCE.map((d) => ({
+                    ...d,
+                    name: d.participant.replace('sub-', '')
+                  }))}
+                  xKey="name"
+                  yKey="peak_cp_ms"
+                  color="#10b981"
+                  height={280}
+                />
+                <p className="text-[10px] text-zinc-500 mt-1">
+                  When in the epoch (ms post-stimulus) the changepoint probability peaked. Concentrated 95–595 ms.
+                </p>
+              </div>
+              <div>
+                <DataTable
+                  title="Within-Epoch Variance Latency"
+                  data={data.WITHIN_EPOCH_VARIANCE}
+                  headers={['participant', 'peak_cp_ms', 'max_cp_prob']}
+                  description="Peak changepoint latency for windowed log variance."
+                />
+              </div>
             </div>
-            <div>
-              <DataTable 
-                title="Within-Epoch Variance Latency" 
-                data={data.WITHIN_EPOCH_VARIANCE} 
-                headers={['participant', 'peak_cp_ms', 'max_cp_prob']} 
-                description="Peak changepoint latency for windowed log variance."
-              />
-            </div>
+            <p className="text-zinc-400 text-sm leading-relaxed mt-8">
+              Mode of peak latency = 395 ms (3 participants); mean = 355 ms across all 10. Per-condition variance analysis (60 conditions) yielded max CP prob up to 0.195 (sub-02, cond 7251 at 295 ms). Peak latencies show bimodal structure (early 45–295 ms and late 495–745 ms), suggesting image category may modulate when the variance regime shift occurs.
+            </p>
           </div>
 
           <div className="pt-16 border-t border-zinc-800">

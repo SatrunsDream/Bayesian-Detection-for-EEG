@@ -81,6 +81,8 @@ storyboard/
         ├── BOCPDLogic.tsx         # Real-time inference demo
         ├── Math.tsx               # KaTeX LaTeX renderer
         ├── PdfViewerModal.tsx     # Full-screen PDF overlay (report, contract)
+        ├── AcrossRepsComparisonChart.tsx  # Single vs aggregated, grouped bars + count cards
+        ├── AcrossRepsSection.tsx          # Participant selector + full across-reps block
         └── EEGPlaceholder.tsx  # Legacy D3 placeholder
 ```
 
@@ -108,6 +110,9 @@ storyboard/
 | `BOCPDLogic` | Compact real-time inference demo. Auto-loops. | — |
 | `Math` | Renders LaTeX via KaTeX. Used for bandpower, windowed mean/variance, BOCPD formula. | `latex`, `display?`, `className?` |
 | `PdfViewerModal` | Full-screen overlay for PDFs. iframe viewer, header with title + X, Escape to close. | `isOpen`, `onClose`, `src`, `title` |
+| `WithinEpochComparisonChart` | Grouped bar chart: windowed mean vs variance max CP prob by participant; hazard (0.02) reference line. | `meanData`, `varianceData`, `height?` |
+| `AcrossRepsComparisonChart` | Count cards (conditions &gt; 0.15) + grouped bar: same conditions single vs aggregated (top 8). | `singleData`, `aggregateData`, `height?` |
+| `AcrossRepsSection` | Full Across-Repetition block: participant selector (All, 01, 05, 10), chart, stat cards, takeaway, DataTable. | `data` with ACROSS_REPS_* |
 | `EEGPlaceholder` | Legacy D3 placeholder (raw/prob/runlength). | — |
 
 ---
